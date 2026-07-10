@@ -43,4 +43,12 @@ describe('createRenderScheduler', () => {
     s.setAnimating(false);
     expect(p.noLoop).toHaveBeenCalledTimes(2); // init + off
   });
+  it('exposes animating state for the draw loop', () => {
+    const p = fakeP5();
+    const s = createRenderScheduler(p);
+    s.init();
+    expect(s.isAnimating()).toBe(false);
+    s.setAnimating(true);
+    expect(s.isAnimating()).toBe(true);
+  });
 });

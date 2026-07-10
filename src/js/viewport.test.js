@@ -29,4 +29,10 @@ describe('computeViewport', () => {
     expect(PANEL_RIGHT).toBe(290);
     expect(FIT).toBe(0.85);
   });
+  it('writes into a reusable out-object (zero-alloc draw loop)', () => {
+    const out = {};
+    const v = computeViewport({ winW: 1920, winH: 1080, bufW: 1200, bufH: 1200 }, out);
+    expect(v).toBe(out); // тот же объект, не новый
+    expect(out.w).toBeCloseTo(918, 0);
+  });
 });
