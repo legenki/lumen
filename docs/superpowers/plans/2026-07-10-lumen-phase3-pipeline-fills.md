@@ -21,7 +21,7 @@
 **Files:**
 - Create: `src/shaders/lumen.vert`, `src/shaders/fillColor.frag`, `src/shaders/fillGradient.frag`, `src/shaders/fillMedia.frag`, `src/shaders/fillNoise.frag`
 
-- [ ] **Step 1: Vertex-шейдер** `src/shaders/lumen.vert` — дословно из reference/filtr/shaders/README.md §1 (fullscreen-quad, БЕЗ матриц p5):
+- [x] **Step 1: Vertex-шейдер** `src/shaders/lumen.vert` — дословно из reference/filtr/shaders/README.md §1 (fullscreen-quad, БЕЗ матриц p5):
 
 ```glsl
 #version 300 es
@@ -42,7 +42,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Копии fill-фрагов**
+- [x] **Step 2: Копии fill-фрагов**
 
 ```bash
 for f in fillColor fillGradient fillMedia fillNoise; do
@@ -54,7 +54,7 @@ done
 ```
 Expected: 4 × OK (байт-в-байт).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/shaders
@@ -68,7 +68,7 @@ git commit -m "feat: vendor fill fragment shaders and fullscreen-quad vertex sha
 **Files:**
 - Modify: `src/js/viewport.js`, `src/js/viewport.test.js`, `src/js/scheduler.js`, `src/js/scheduler.test.js`
 
-- [ ] **Step 1: Обновить тесты viewport** — добавить в `src/js/viewport.test.js`:
+- [x] **Step 1: Обновить тесты viewport** — добавить в `src/js/viewport.test.js`:
 
 ```js
   it('writes into a reusable out-object (zero-alloc draw loop)', () => {
@@ -79,9 +79,9 @@ git commit -m "feat: vendor fill fragment shaders and fullscreen-quad vertex sha
   });
 ```
 
-- [ ] **Step 2: Тест падает** — `npm test -- viewport` → FAIL (out игнорируется).
+- [x] **Step 2: Тест падает** — `npm test -- viewport` → FAIL (out игнорируется).
 
-- [ ] **Step 3: Реализация** — сигнатура `computeViewport({...}, out = {})`; вместо возврата литерала:
+- [x] **Step 3: Реализация** — сигнатура `computeViewport({...}, out = {})`; вместо возврата литерала:
 
 ```js
 export function computeViewport({ winW, winH, bufW, bufH }, out = {}) {
@@ -96,7 +96,7 @@ export function computeViewport({ winW, winH, bufW, bufH }, out = {}) {
 }
 ```
 
-- [ ] **Step 4: Тест анимационного кадра scheduler** — добавить в `src/js/scheduler.test.js`:
+- [x] **Step 4: Тест анимационного кадра scheduler** — добавить в `src/js/scheduler.test.js`:
 
 ```js
   it('exposes animating state for the draw loop', () => {
@@ -110,9 +110,9 @@ export function computeViewport({ winW, winH, bufW, bufH }, out = {}) {
 ```
 (isAnimating уже реализован — тест закрепляет контракт; должен пройти сразу.)
 
-- [ ] **Step 5: Прогнать** — `npm test` → PASS все; `npm run lint` → чисто.
+- [x] **Step 5: Прогнать** — `npm test` → PASS все; `npm run lint` → чисто.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/viewport.js src/js/viewport.test.js src/js/scheduler.test.js
@@ -127,7 +127,7 @@ git commit -m "feat: zero-alloc viewport out-param for the hot draw loop"
 - Create: `src/js/stack.js`, `src/js/modules/uniformUtils.js`
 - Test: `src/js/stack.test.js`, `src/js/modules/uniformUtils.test.js`
 
-- [ ] **Step 1: Тесты stack** (`src/js/stack.test.js`):
+- [x] **Step 1: Тесты stack** (`src/js/stack.test.js`):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -175,7 +175,7 @@ describe('getRenderPasses', () => {
 });
 ```
 
-- [ ] **Step 2: Тесты uniformUtils** (`src/js/modules/uniformUtils.test.js`) — транскрипция хелперов старого кода (bundle-pretty.js:47526-47542: `C` hex→rgb01, `D` hex+mix→vec4; `Es` = radians; упаковка градиента 47321-47323):
+- [x] **Step 2: Тесты uniformUtils** (`src/js/modules/uniformUtils.test.js`) — транскрипция хелперов старого кода (bundle-pretty.js:47526-47542: `C` hex→rgb01, `D` hex+mix→vec4; `Es` = radians; упаковка градиента 47321-47323):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -219,9 +219,9 @@ describe('packGradient', () => {
 });
 ```
 
-- [ ] **Step 3: Убедиться, что падают** — `npm test -- stack uniformUtils` → FAIL (модулей нет; stack.test также упадёт на import modules/index.js — его создаёт Task 4; на этом шаге допустимо, что stack.test падает именно на отсутствующем импорте).
+- [x] **Step 3: Убедиться, что падают** — `npm test -- stack uniformUtils` → FAIL (модулей нет; stack.test также упадёт на import modules/index.js — его создаёт Task 4; на этом шаге допустимо, что stack.test падает именно на отсутствующем импорте).
 
-- [ ] **Step 4: Реализация**
+- [x] **Step 4: Реализация**
 
 `src/js/modules/uniformUtils.js`:
 
@@ -311,9 +311,9 @@ export function getRenderPasses(stack) {
 ```
 
 
-- [ ] **Step 5: Прогнать** — `npm test -- stack uniformUtils`: uniformUtils PASS; stack.test всё ещё падает ТОЛЬКО на `./modules/index.js` (нет файла) — это ожидаемо до Task 4. Если падает на чём-то другом — чинить сейчас.
+- [x] **Step 5: Прогнать** — `npm test -- stack uniformUtils`: uniformUtils PASS; stack.test всё ещё падает ТОЛЬКО на `./modules/index.js` (нет файла) — это ожидаемо до Task 4. Если падает на чём-то другом — чинить сейчас.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/stack.js src/js/stack.test.js src/js/modules/uniformUtils.js src/js/modules/uniformUtils.test.js
@@ -332,7 +332,7 @@ git commit -m "feat: stack operations and uniform transcription helpers (TDD)"
 
 Маппинг uniform'ов — дословная транскрипция bundle-pretty.js:47271-47369 (fillNoise 47286, fillColor 47303, fillGradient 47320-47326, fillMedia 47369). `u_src`/`u_mask`/`u_maskUse` НЕ входят в `uniforms()` — их ставит пайплайн (вход цепочки и маска — его зона).
 
-- [ ] **Step 1: Тесты** (`src/js/modules/fills.test.js`):
+- [x] **Step 1: Тесты** (`src/js/modules/fills.test.js`):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -436,9 +436,9 @@ describe('zero-alloc contract', () => {
 });
 ```
 
-- [ ] **Step 2: Падают** — `npm test -- fills` → FAIL (модулей нет).
+- [x] **Step 2: Падают** — `npm test -- fills` → FAIL (модулей нет).
 
-- [ ] **Step 3: Реализация.** Дефолты — дословно из reference/filtr/modules.js:
+- [x] **Step 3: Реализация.** Дефолты — дословно из reference/filtr/modules.js:
 
 `src/js/modules/fillColor.js`:
 
@@ -607,9 +607,9 @@ export const MODULES = {
 };
 ```
 
-- [ ] **Step 4: Прогнать** — `npm test` → PASS все (включая отложенный stack.test из Task 3); `npm run lint` → чисто.
+- [x] **Step 4: Прогнать** — `npm test` → PASS все (включая отложенный stack.test из Task 3); `npm run lint` → чисто.
 
-- [ ] **Step 5: Сверка дефолтов с reference**
+- [x] **Step 5: Сверка дефолтов с reference**
 
 ```bash
 node -e "
@@ -624,7 +624,7 @@ Promise.all([import('./reference/filtr/modules.js'), import('./src/js/modules/in
 ```
 Expected: 4 × OK.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/modules src/js/stack.test.js
@@ -639,7 +639,7 @@ git commit -m "feat: four fill modules with tested verbatim uniform transcriptio
 - Create: `src/js/media.js`
 - Test: `src/js/media.test.js`
 
-- [ ] **Step 1: Тест** (`src/js/media.test.js`) — логика реестра с инжектированным загрузчиком (без браузера):
+- [x] **Step 1: Тест** (`src/js/media.test.js`) — логика реестра с инжектированным загрузчиком (без браузера):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -676,9 +676,9 @@ describe('createMediaRegistry', () => {
 });
 ```
 
-- [ ] **Step 2: Падает** — `npm test -- media` → FAIL.
+- [x] **Step 2: Падает** — `npm test -- media` → FAIL.
 
-- [ ] **Step 3: Реализация** `src/js/media.js`:
+- [x] **Step 3: Реализация** `src/js/media.js`:
 
 ```js
 // LUMEN — реестр медиа-текстур (фаза 3: только дефолтные ассеты из assets.js;
@@ -719,9 +719,9 @@ export function createMediaRegistry(sources, loadImage) {
 }
 ```
 
-- [ ] **Step 4: Прогнать** — `npm test -- media` → PASS; полный `npm test`, `npm run lint` → чисто.
+- [x] **Step 4: Прогнать** — `npm test -- media` → PASS; полный `npm test`, `npm run lint` → чисто.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/js/media.js src/js/media.test.js
@@ -737,13 +737,13 @@ git commit -m "feat: media registry for default assets with graceful failures"
 - Modify: `src/js/app.js` (полная замена), `src/js/graphicsModes.js` (добавить WEBGL-вариант)
 - Copy: `src/shared/utils/alphaCheckerboard.js` (из divix, дословно)
 
-- [ ] **Step 1: Вендорить шахматку**
+- [x] **Step 1: Вендорить шахматку**
 
 ```bash
 cp /Users/andy/Documents/GitHub/divix/src/shared/utils/alphaCheckerboard.js src/shared/utils/alphaCheckerboard.js
 ```
 
-- [ ] **Step 2: WEBGL-вариант восстановления режимов** — добавить в `src/js/graphicsModes.js`:
+- [x] **Step 2: WEBGL-вариант восстановления режимов** — добавить в `src/js/graphicsModes.js`:
 
 ```js
 // WEBGL-буфер после resizeCanvas: p5 сбрасывает stroke/density; framebuffer'ы
@@ -754,7 +754,7 @@ export function restoreGlModes(g) {
 }
 ```
 
-- [ ] **Step 3: `src/js/pipeline.js`**
+- [x] **Step 3: `src/js/pipeline.js`**
 
 ```js
 // LUMEN — пайплайн шейдерных пассов: ping-pong между fboA/fboB внутри
@@ -843,7 +843,7 @@ export function createPipeline(glc, p) {
 }
 ```
 
-- [ ] **Step 4: Переписать `src/js/app.js`**
+- [x] **Step 4: Переписать `src/js/app.js`**
 
 ```js
 // LUMEN — главный контроллер: экранный 2D-canvas на всё окно; WEBGL2-графика
@@ -936,10 +936,10 @@ export function lumenSketch(p, { state, onReady }) {
 
 Примечание: объект-аргумент `computeViewport({...}, vp)` — единственная оставшаяся аллокация литерала в draw; допустимо (короткоживущий, движки такие не промоутят), НО если хочется строго — хойстни и его. `state.runtime.frame` уже есть в state фазы 2.
 
-- [ ] **Step 5: Smoke**
+- [x] **Step 5: Smoke**
 `npm run lint && npm test && npm run build` → чисто. Dev: `npm run dev -- --port 3211 --strictPort` в фоне; curl 200; убить. Поведение в браузере проверит контроллер (пустой стек = шахматка; добавление модулей — Task 7).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/pipeline.js src/js/app.js src/js/graphicsModes.js src/shared/utils/alphaCheckerboard.js
@@ -953,7 +953,7 @@ git commit -m "feat: WebGL2 ping-pong pass pipeline and app shell on shader buff
 **Files:**
 - Modify: `src/js/controls.js`, `src/js/main.js`
 
-- [ ] **Step 1: Секции** — в `src/js/controls.js` добавить к Canvas-секции чекбокс анимации и новую dev-секцию стека:
+- [x] **Step 1: Секции** — в `src/js/controls.js` добавить к Canvas-секции чекбокс анимации и новую dev-секцию стека:
 
 ```js
 // В controls-массив Canvas-секции добавить ПОСЛЕ слайдера scale:
@@ -987,7 +987,7 @@ git commit -m "feat: WebGL2 ping-pong pass pipeline and app shell on shader buff
 
 В `src/js/state.js` НИЧЕГО менять не нужно, кроме одного поля: в `createDefaultState().ui` добавить `devModule: 'fillGradient'` (не сериализуется — ui и так вне PERSISTED). Прогони `npm test` — state-тесты не должны сломаться (они не перечисляют ui-ключи).
 
-- [ ] **Step 2: Диспетчер** — в `src/js/main.js`:
+- [x] **Step 2: Диспетчер** — в `src/js/main.js`:
 
 ```js
 // добавить импорты:
@@ -1022,9 +1022,9 @@ function applyChange(ctrl) {
 // в buildUI: openSections(root, [0, 1]); // Canvas + Stack (dev)
 ```
 
-- [ ] **Step 3: Проверки** — `npm run lint && npm test && npm run build` → чисто; dev-сервер curl 200.
+- [x] **Step 3: Проверки** — `npm run lint && npm test && npm run build` → чисто; dev-сервер curl 200.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/js/controls.js src/js/main.js src/js/state.js
