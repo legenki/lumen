@@ -153,10 +153,12 @@ git commit -m "ref: add pretty-printed filtr-tool bundle for reverse engineering
 - [ ] **Step 1: Скопировать frag-файлы, убрав хэши из имён**
 
 ```bash
+# ВНИМАНИЕ: наивный ${base%-*} ломается на хэшах с дефисом
+# (blurNoise-CO-OBL7q → blurNoise-CO). Режем по известным именам модулей.
 mkdir -p reference/filtr/shaders
 for f in reference/filtr/live/filtr-tool/assets/*.frag; do
-  base=$(basename "$f" .frag)     # e.g. fillMedia-Dg4rXJaa
-  clean=${base%-*}                # e.g. fillMedia
+  base=$(basename "$f" .frag)              # e.g. blurNoise-CO-OBL7q
+  clean=$(echo "$base" | sed -E 's/^([a-zA-Z]+)-.*/\1/')  # имя до первого дефиса
   cp "$f" "reference/filtr/shaders/$clean.frag"
 done
 ls reference/filtr/shaders/*.frag | wc -l
