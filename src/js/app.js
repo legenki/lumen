@@ -28,7 +28,7 @@ export function lumenSketch(p, { state, onReady }) {
     if (!glc) {
       glc = p.createGraphics(width, height, p.WEBGL);
       restoreGlModes(glc);
-      pipeline = createPipeline(glc);
+      pipeline = createPipeline(glc, p);
     } else if (glc.width !== width || glc.height !== height) {
       glc.resizeCanvas(width, height);
       restoreGlModes(glc); // FBO p5 автоследуют размеру канваса

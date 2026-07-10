@@ -19,8 +19,11 @@ const FRAG_SOURCES = {
   fillNoise: fillNoiseFrag,
 };
 
-export function createPipeline(glc) {
-  const fboOpts = { format: glc.HALF_FLOAT, depth: false, antialias: true };
+// p — корневой p5-инстанс: константы (HALF_FLOAT и др.) живут на p5.prototype
+// и есть только у p5-инстансов; p5.Graphics их НЕ наследует (p5 2.2.3), поэтому
+// glc.HALF_FLOAT === undefined и p5 молча откатился бы к UNSIGNED_BYTE.
+export function createPipeline(glc, p) {
+  const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: true };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
   let ping = 0;
