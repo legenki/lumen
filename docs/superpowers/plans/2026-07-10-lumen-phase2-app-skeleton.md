@@ -20,7 +20,7 @@
 **Files:**
 - Create: `package.json`, `vite.config.js`, `eslint.config.js`, `.prettierrc.json`, `.gitignore`, `public/icon.svg`, `index.html` (минимальный), `src/css/style.css` (заглушка), `src/js/main.js` (заглушка)
 
-- [ ] **Step 1: package.json**
+- [x] **Step 1: package.json**
 
 ```json
 {
@@ -54,7 +54,7 @@
 }
 ```
 
-- [ ] **Step 2: vite.config.js** (по divix, без HTML-partials — одно приложение)
+- [x] **Step 2: vite.config.js** (по divix, без HTML-partials — одно приложение)
 
 ```js
 import { defineConfig } from 'vite';
@@ -97,7 +97,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: eslint.config.js и .prettierrc.json**
+- [x] **Step 3: eslint.config.js и .prettierrc.json**
 
 ```js
 import js from '@eslint/js';
@@ -130,13 +130,13 @@ dev-dist/
 .DS_Store
 ```
 
-- [ ] **Step 4: public/icon.svg** (простой моно-глиф; заменяемый позже)
+- [x] **Step 4: public/icon.svg** (простой моно-глиф; заменяемый позже)
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#111"/><circle cx="32" cy="32" r="17" fill="none" stroke="#f4f4f4" stroke-width="5"/><circle cx="32" cy="32" r="5" fill="#f4f4f4"/></svg>
 ```
 
-- [ ] **Step 5: минимальные index.html / src/css/style.css / src/js/main.js** (полноценный layout — Task 4; сейчас smoke-заглушки)
+- [x] **Step 5: минимальные index.html / src/css/style.css / src/js/main.js** (полноценный layout — Task 4; сейчас smoke-заглушки)
 
 `index.html`:
 
@@ -160,7 +160,7 @@ dev-dist/
 `src/css/style.css`: `body { margin: 0; }` (заменится в Task 4).
 `src/js/main.js`: `console.log('lumen boot');` (заменится в Task 6).
 
-- [ ] **Step 6: Установка и smoke**
+- [x] **Step 6: Установка и smoke**
 
 Run: `npm install && npm run build`
 Expected: build успешен, в `dist/` есть `index.html`, `sw.js`, `manifest.webmanifest`.
@@ -168,7 +168,7 @@ Expected: build успешен, в `dist/` есть `index.html`, `sw.js`, `mani
 Run: `npm run lint && npm test`
 Expected: lint чистый; vitest сообщает «no test files found» — это нормально до Task 2 (выход 0 или предупреждение; если vitest падает из-за отсутствия тестов, добавить в package.json флаг `--passWithNoTests` к скрипту test).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json vite.config.js eslint.config.js .prettierrc.json .gitignore public/icon.svg index.html src/
@@ -183,7 +183,7 @@ git commit -m "feat: scaffold Vite+PWA project skeleton with tooling"
 - Create: `src/shared/utils/storage.js`, `src/shared/utils/persistence.js`, `src/shared/utils/deepMerge.js`, `src/shared/utils/datetime.js`, `src/shared/ui/panelBuilder.js`
 - Test: `src/shared/utils/deepMerge.test.js`
 
-- [ ] **Step 1: Скопировать дословно из divix**
+- [x] **Step 1: Скопировать дословно из divix**
 
 ```bash
 mkdir -p src/shared/utils src/shared/ui
@@ -196,7 +196,7 @@ cp /Users/andy/Documents/GitHub/divix/src/shared/utils/panelBuilder.test.js src/
 
 Файлы НЕ модифицировать (общая дизайн-система; расхождения с divix — только через осознанный форк в будущих фазах).
 
-- [ ] **Step 2: Тест deepMerge** (`src/shared/utils/deepMerge.test.js`) — divix её не покрывал; поведение фиксируем по реализации (рекурсивный мердж plain-объектов, массивы и скаляры заменяются):
+- [x] **Step 2: Тест deepMerge** (`src/shared/utils/deepMerge.test.js`) — divix её не покрывал; поведение фиксируем по реализации (рекурсивный мердж plain-объектов, массивы и скаляры заменяются):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -224,12 +224,12 @@ describe('deepMerge', () => {
 
 (Перед написанием прочитай `src/shared/utils/deepMerge.js` — 15 строк; если фактическая семантика отличается от ожиданий теста, приведи ТЕСТ к фактическому поведению divix-реализации и отметь это в отчёте. Реализацию не менять.)
 
-- [ ] **Step 3: Прогнать**
+- [x] **Step 3: Прогнать**
 
 Run: `npm test`
 Expected: deepMerge-тесты PASS; panelBuilder.test.js PASS (jsdom уже в devDeps; если тесту нужен environment jsdom — добавить `// @vitest-environment jsdom` в шапку файла, как в divix, проверить как там).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/shared
@@ -246,7 +246,7 @@ git commit -m "feat: vendor shared utils and panelBuilder from divix design syst
 
 Дефолты — из старого инструмента (reference/filtr/architecture.md §2, bundle U4/Sc/d4; ratio-таблица и базовые разрешения перенесены дословно). `SCHEMA_VERSION = 1` — версия НОВОГО формата Lumen (старые пресеты version:2 конвертируются в фазе 6).
 
-- [ ] **Step 1: Написать падающие тесты** (`src/js/state.test.js`):
+- [x] **Step 1: Написать падающие тесты** (`src/js/state.test.js`):
 
 ```js
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -319,12 +319,12 @@ describe('serialize/restore round-trip', () => {
 });
 ```
 
-- [ ] **Step 2: Убедиться, что падают**
+- [x] **Step 2: Убедиться, что падают**
 
 Run: `npm test -- state`
 Expected: FAIL — `Cannot find module './state.js'` (или equivalent).
 
-- [ ] **Step 3: Реализовать `src/js/state.js`**
+- [x] **Step 3: Реализовать `src/js/state.js`**
 
 ```js
 // LUMEN — единый источник истины (спека §2, дефолты старого инструмента:
@@ -431,12 +431,12 @@ function mergeKnown(target, source) {
 }
 ```
 
-- [ ] **Step 4: Прогнать тесты**
+- [x] **Step 4: Прогнать тесты**
 
 Run: `npm test -- state`
 Expected: PASS (все).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/js/state.js src/js/state.test.js
@@ -451,19 +451,19 @@ git commit -m "feat: state model with versioned serialize/restore (old-tool defa
 - Create: `src/css/style.css` (замена заглушки: копия divix + lumen-правки)
 - Modify: `index.html` (полный layout)
 
-- [ ] **Step 1: Скопировать CSS дизайн-системы**
+- [x] **Step 1: Скопировать CSS дизайн-системы**
 
 ```bash
 cp /Users/andy/Documents/GitHub/divix/src/css/style.css src/css/style.css
 ```
 
-- [ ] **Step 2: Очистить от офлайн-нарушений и divix-специфики**
+- [x] **Step 2: Очистить от офлайн-нарушений и divix-специфики**
 
 В скопированном `src/css/style.css`:
 1. Удалить все `@import`/`url(` ссылки на ВНЕШНИЕ ресурсы (googleapis и т.п.), если есть (`grep -n "googleapis\|http" src/css/style.css`) — offline-first. Font-family заменять системным стеком только в тех правилах, где удалили внешний шрифт.
 2. НЕ вычищать остальное (классы других workspace'ов не мешают и держат файл диффабельным против divix).
 
-- [ ] **Step 3: Дописать lumen-блок в конец style.css**
+- [x] **Step 3: Дописать lumen-блок в конец style.css**
 
 ```css
 /* ============ LUMEN: two-panel layout ============ */
@@ -492,7 +492,7 @@ cp /Users/andy/Documents/GitHub/divix/src/css/style.css src/css/style.css
 
 (Константа 290 = 260px панель + 20px margin + 10px зазор живёт в JS-модуле viewport.js, Task 5 — CSS-переменные тут не нужны, панели фиксированы; значение из AGENTS.md §3, как в divix.)
 
-- [ ] **Step 4: Полный index.html**
+- [x] **Step 4: Полный index.html**
 
 ```html
 <!DOCTYPE html>
@@ -535,12 +535,12 @@ cp /Users/andy/Documents/GitHub/divix/src/css/style.css src/css/style.css
 
 Сверь имена классов `.sidebar`, `.right-sidebar`, `.sidebar-content`, `.sidebar-footer`, `.btn btn-accent`, `.export-status` с фактическим style.css (скопирован из divix) — если какой-то класс в divix называется иначе, использовать divix-имя (источник истины — CSS, не этот сниппет).
 
-- [ ] **Step 5: Smoke**
+- [x] **Step 5: Smoke**
 
 Run: `npm run build && npm run preview & sleep 2 && curl -s http://localhost:4173/lumen/ | grep -c "lumen-sidebar-left\|right-sidebar\|lumen-canvas" ; kill %1`
 Expected: `3` (или больше); build без ошибок.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/css/style.css index.html
@@ -555,7 +555,7 @@ git commit -m "feat: two-panel glassmorphism layout on divix design system"
 - Create: `src/js/viewport.js`, `src/js/scheduler.js`
 - Test: `src/js/viewport.test.js`, `src/js/scheduler.test.js`
 
-- [ ] **Step 1: Падающие тесты viewport** (`src/js/viewport.test.js`):
+- [x] **Step 1: Падающие тесты viewport** (`src/js/viewport.test.js`):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -592,7 +592,7 @@ describe('computeViewport', () => {
 });
 ```
 
-- [ ] **Step 2: Падающие тесты scheduler** (`src/js/scheduler.test.js`):
+- [x] **Step 2: Падающие тесты scheduler** (`src/js/scheduler.test.js`):
 
 ```js
 import { describe, it, expect, vi } from 'vitest';
@@ -643,12 +643,12 @@ describe('createRenderScheduler', () => {
 });
 ```
 
-- [ ] **Step 3: Убедиться, что падают**
+- [x] **Step 3: Убедиться, что падают**
 
 Run: `npm test -- viewport scheduler`
 Expected: FAIL — модули не существуют.
 
-- [ ] **Step 4: Реализация**
+- [x] **Step 4: Реализация**
 
 `src/js/viewport.js`:
 
@@ -710,12 +710,12 @@ export function createRenderScheduler(p) {
 }
 ```
 
-- [ ] **Step 5: Прогнать тесты**
+- [x] **Step 5: Прогнать тесты**
 
 Run: `npm test -- viewport scheduler`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/viewport.js src/js/viewport.test.js src/js/scheduler.js src/js/scheduler.test.js
@@ -730,7 +730,7 @@ git commit -m "feat: viewport centering math and dirty-flag render scheduler (TD
 - Create: `src/js/app.js`, `src/js/graphicsModes.js`
 - Modify: `src/js/main.js`
 
-- [ ] **Step 1: `src/js/graphicsModes.js`** — ловушка resizeCanvas (методология, AGENTS.md §4):
+- [x] **Step 1: `src/js/graphicsModes.js`** — ловушка resizeCanvas (методология, AGENTS.md §4):
 
 ```js
 // resizeCanvas() у p5.Graphics полностью сбрасывает 2D-контекст —
@@ -744,7 +744,7 @@ export function restoreGraphicsModes(g, p) {
 }
 ```
 
-- [ ] **Step 2: `src/js/app.js`**
+- [x] **Step 2: `src/js/app.js`**
 
 ```js
 // LUMEN — главный контроллер: p5 instance mode (AGENTS.md §1), экранный 2D
@@ -825,7 +825,7 @@ export function lumenSketch(p, { state, onReady }) {
 }
 ```
 
-- [ ] **Step 3: `src/js/main.js`** — точка входа (по образцу divix main.js, без табов):
+- [x] **Step 3: `src/js/main.js`** — точка входа (по образцу divix main.js, без табов):
 
 ```js
 import p5 from 'p5';
@@ -853,7 +853,7 @@ new p5((p) => lumenSketch(p, {
 export { state };
 ```
 
-- [ ] **Step 4: Smoke + lint**
+- [x] **Step 4: Smoke + lint**
 
 Run: `npm run lint && npm run build`
 Expected: чисто.
@@ -861,7 +861,7 @@ Expected: чисто.
 Run: `npm run dev & sleep 3 && curl -s http://localhost:3000/lumen/ -o /dev/null -w "%{http_code}"; kill %1`
 Expected: `200`. (Визуально: тест-паттерн с рамкой по центру между панелями; шахматка не искажена — проверяет контроллер при ревью.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/js/app.js src/js/graphicsModes.js src/js/main.js
@@ -876,7 +876,7 @@ git commit -m "feat: p5 instance app shell with centered test buffer and on-dema
 - Create: `src/js/controls.js`
 - Modify: `src/js/main.js` (UI-встройка вместо `window.__lumenApi`)
 
-- [ ] **Step 1: `src/js/controls.js`** — декларативные секции (формат SECTIONS panelBuilder'а; divix-идиома):
+- [x] **Step 1: `src/js/controls.js`** — декларативные секции (формат SECTIONS panelBuilder'а; divix-идиома):
 
 ```js
 // LUMEN — декларативное описание панелей (спека §3: controls.js).
@@ -900,7 +900,7 @@ export const LEFT_SECTIONS = [
 ];
 ```
 
-- [ ] **Step 2: Перепаять `src/js/main.js`** — построение панели, applyChange, persistence:
+- [x] **Step 2: Перепаять `src/js/main.js`** — построение панели, applyChange, persistence:
 
 ```js
 import p5 from 'p5';
@@ -993,7 +993,7 @@ export { state };
 
 (`timestamp` — сверь фактическую сигнатуру в `src/shared/utils/datetime.js`, скопированном из divix, и используй её; если там иное имя — поправь импорт, не файл.)
 
-- [ ] **Step 3: Ручной smoke через dev-сервер**
+- [x] **Step 3: Ручной smoke через dev-сервер**
 
 Run: `npm run lint && npm test && npm run build`
 Expected: всё чисто.
@@ -1001,7 +1001,7 @@ Expected: всё чисто.
 Функциональная проверка (dev-сервер + браузер делает контроллер на ревью; исполнителю — консольная):
 `npm run dev & sleep 3 && curl -s http://localhost:3000/lumen/ -o /dev/null -w "%{http_code}"; kill %1` → `200`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/js/controls.js src/js/main.js
@@ -1015,11 +1015,11 @@ git commit -m "feat: Canvas section UI, PNG export and localStorage persistence"
 **Files:**
 - Create: `public/assets/lumen/media/*` (full-варианты дефолтных медиа), `src/js/assets.js`, `README.md`
 
-- [ ] **Step 1: Определить full-варианты**
+- [x] **Step 1: Определить full-варианты**
 
 У дефолтных медиа старого инструмента по ДВА файла на имя: preview и full (см. reference/filtr/architecture.md §4, таблицы b4/v4 в bundle-pretty.js:41283-41328 — там `previewSrc: Pt(...)` и `fullSrc: Kt(...)` с разными хэшами). Открой эти строки бандла, выпиши какой хэш = full для: img0-img3, text0-text5, noise0. Файлы без пары (shape0-4, gradient-*, white, blue-noise png, watermark) — единственные версии; watermark НЕ копировать (лицензионный, спека «Вне объёма»).
 
-- [ ] **Step 2: Скопировать с чистыми именами**
+- [x] **Step 2: Скопировать с чистыми именами**
 
 ```bash
 mkdir -p public/assets/lumen/media
@@ -1033,7 +1033,7 @@ ls public/assets/lumen/media | wc -l
 
 Expected: `21` файл (4 img + 6 text + 1 noise + 5 shape + 4 gradient + 1 white = 21 webp — минус... пересчитай сам и зафиксируй фактическое число в отчёте) + 1 png = 22 всего. Сверь каждое скопированное full-имя размером больше preview-собрата (`ls -la` обоих хэшей).
 
-- [ ] **Step 3: `src/js/assets.js`** — манифест-модуль:
+- [x] **Step 3: `src/js/assets.js`** — манифест-модуль:
 
 ```js
 // LUMEN — локальные дефолтные ассеты (offline-first, AGENTS.md §7).
@@ -1068,12 +1068,12 @@ export const DEFAULT_MEDIA = {
 export const BLUE_NOISE_URL = `${BASE}/blue-noise-256x256.png`;
 ```
 
-- [ ] **Step 4: PWA-проверка офлайн-комплектности**
+- [x] **Step 4: PWA-проверка офлайн-комплектности**
 
 Run: `npm run build && grep -o "assets/lumen/media/[a-z0-9.-]*" dist/sw.js | sort -u | wc -l`
 Expected: 22 (все ассеты в precache). Если 0 — проверь `globPatterns` в vite.config.js (webp/png уже включены в Task 1).
 
-- [ ] **Step 5: README.md проекта** (кратко, по образцу divix):
+- [x] **Step 5: README.md проекта** (кратко, по образцу divix):
 
 ```markdown
 # Lumen
@@ -1097,12 +1097,12 @@ offline-first PWA export. Port of the legacy filtr-tool
 - Methodology: `LUMEN_METHODOLOGY.md`, agent rules: `AGENTS.md`
 ```
 
-- [ ] **Step 6: Финальный прогон фазы**
+- [x] **Step 6: Финальный прогон фазы**
 
 Run: `npm run lint && npm test && npm run build`
 Expected: всё зелёное.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add public/assets src/js/assets.js README.md
