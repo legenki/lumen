@@ -411,15 +411,19 @@ export function restoreState(state, snap) {
 
 // Мердж только по ключам, уже существующим в target (отбрасывает неизвестное —
 // в отличие от shared deepMerge, который копирует всё; см. state.test.js).
+// Shape guard: если в target лежит plain object, source обязан тоже быть plain
+// object (иначе ключ игнорируется) — битый LocalStorage не должен затирать
+// вложенные секции null'ом или массивом.
 function mergeKnown(target, source) {
   if (typeof source !== 'object' || source === null) return;
   for (const key of Object.keys(source)) {
     if (!(key in target)) continue;
     const t = target[key];
     const s = source[key];
-    if (typeof t === 'object' && t !== null && !Array.isArray(t)
-        && typeof s === 'object' && s !== null && !Array.isArray(s)) {
-      mergeKnown(t, s);
+    const tIsObj = typeof t === 'object' && t !== null && !Array.isArray(t);
+    const sIsObj = typeof s === 'object' && s !== null && !Array.isArray(s);
+    if (tIsObj) {
+      if (sIsObj) mergeKnown(t, s); // не-объект на месте объекта — игнор
     } else if (s !== undefined) {
       target[key] = structuredClone(s);
     }
