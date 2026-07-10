@@ -8,7 +8,29 @@
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body class="theme-light">
-  <div id="lumen-app">Lumen skeleton</div>
+  <div class="lumen-app">
+
+    <aside class="sidebar lumen-sidebar-left">
+      <div class="sidebar-content" id="lm-left"></div>
+      <footer class="sidebar-footer">
+        <button id="lm-btn-save-png" class="btn btn-accent">Export as PNG</button>
+        <div id="lm-export-status" class="export-status"></div>
+      </footer>
+    </aside>
+
+    <main class="lumen-canvas-viewport" id="lumen-canvas">
+      <!-- p5.js canvas injected here -->
+    </main>
+
+    <aside class="sidebar right-sidebar">
+      <div class="sidebar-content" id="lm-inspector">
+        <p class="inspector-empty" style="opacity:.5;padding:12px;font-size:12px;">
+          Select a layer to edit its parameters
+        </p>
+      </div>
+    </aside>
+
+  </div>
   <script type="module" src="/src/js/main.js"></script>
 </body>
 </html>
