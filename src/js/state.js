@@ -39,6 +39,8 @@ export function createDefaultState() {
       animation: true,
       scale: { value: 2.5, min: 2, max: 8, step: 0.25 },
     },
+    // frameCount и zip из старого appState.rec опущены осознанно:
+    // frameCount — runtime-курсор кадра, zip — до задачи рекордера в фазе 6.
     rec: {
       preset: 'mp4-web',
       frameRate: 60,
@@ -84,13 +86,15 @@ export function restoreState(state, snap) {
 // в отличие от shared deepMerge, который копирует всё; см. state.test.js).
 function mergeKnown(target, source) {
   if (typeof source !== 'object' || source === null) return;
+  const isPlainObject = (x) => typeof x === 'object' && x !== null && !Array.isArray(x);
   for (const key of Object.keys(source)) {
     if (!(key in target)) continue;
     const t = target[key];
     const s = source[key];
-    if (typeof t === 'object' && t !== null && !Array.isArray(t)
-        && typeof s === 'object' && s !== null && !Array.isArray(s)) {
-      mergeKnown(t, s);
+    if (isPlainObject(t)) {
+      // Вложенный объект: рекурсируем только если source тоже объект;
+      // null/массив/примитив на месте объекта — битые данные, пропускаем ключ.
+      if (isPlainObject(s)) mergeKnown(t, s);
     } else if (s !== undefined) {
       target[key] = structuredClone(s);
     }

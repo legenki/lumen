@@ -60,6 +60,14 @@ describe('serialize/restore round-trip', () => {
     expect(t.cnv.bogus).toBeUndefined();
     expect('junk' in t).toBe(false);
   });
+  it('ignores malformed nested values (null/array where object expected)', () => {
+    const t = createDefaultState();
+    restoreState(t, { v: SCHEMA_VERSION, cnv: { scale: null, ratio: '3:4' } });
+    expect(t.cnv.scale).toEqual({ value: 2.5, min: 2, max: 8, step: 0.25 });
+    expect(t.cnv.ratio).toBe('3:4'); // валидные соседние ключи применяются
+    restoreState(t, { v: SCHEMA_VERSION, cnv: { scale: [1, 2] } });
+    expect(t.cnv.scale.value).toBe(2.5);
+  });
   it('rejects wrong schema version (returns false, state untouched)', () => {
     const t = createDefaultState();
     expect(restoreState(t, { v: 999, cnv: { ratio: '9:16' } })).toBe(false);
