@@ -28,7 +28,12 @@
   - Прочее: Emboss/Relief, Lens Grid, Warp Grid (`embossEffect`, `lensGrid`, `warpGrid`)
   - **MASK: Media File** (`maskMedia`, `type: "mask"`) — группирует другие слои
 - **~28 встроенных пресетов** + user preset
-- **WebGL-пайплайн** из шейдерных пассов (~25 GLSL-шейдеров), 26 blend modes (Photoshop-набор)
+- **WebGL2-пайплайн** из шейдерных пассов: 15 оригинальных `.frag`-файлов
+  (GLSL ES 3.00, `#version 300 es`) — они деплоились отдельными файлами и
+  сохранились в неминифицированном виде с комментариями; 26 blend modes
+  (Photoshop-набор). Часть модулей (blurGaussian/blurMotion, displaceTexture,
+  colorCorrection, maskMedia) переиспользует общие шейдеры — точная карта
+  модуль→пассы составляется на этапе реверса
 - **Медиа-менеджер**: фото и видео, слоты, seek по кадрам, выбор канала
 - **Рекордер WebM** (webm-muxer): Animation Length/Range, FPS, Bitrate Level, Frame Quality
 - UI старого — Tweakpane: «Stack Sequence» + отдельный инспектор
@@ -59,7 +64,7 @@ lumen/
 ├── reference/filtr/            # деминифицированный старый код:
 │   ├── bundle-pretty.js        #   отформатированный бандл целиком (для сверки)
 │   ├── modules.md              #   реестр 19 модулей: параметры, дефолты, пассы
-│   ├── shaders/                #   извлечённые GLSL-шейдеры, дословно
+│   ├── shaders/                #   15 оригинальных .frag (WebGL2), дословно
 │   ├── presets.js              #   28 пресетов как чистые данные
 │   └── live/                   #   рабочая копия старого бандла — эталон для A/B
 └── src/
