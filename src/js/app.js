@@ -1,72 +1,82 @@
-// LUMEN — главный контроллер: p5 instance mode (AGENTS.md §1), экранный 2D
-// canvas на всё окно, offscreen тест-буфер фиксированного разрешения,
-// центрирование между панелями, рендер по требованию.
+// LUMEN — главный контроллер: экранный 2D-canvas на всё окно; WEBGL2-графика
+// фиксированного разрешения с пайплайном пассов; шахматка прозрачности под
+// результатом (как в старом инструменте); рендер по требованию + анимация.
 import { bufferSize } from './state.js';
 import { computeViewport } from './viewport.js';
 import { createRenderScheduler } from './scheduler.js';
-import { restoreGraphicsModes } from './graphicsModes.js';
+import { restoreGlModes } from './graphicsModes.js';
+import { createPipeline } from './pipeline.js';
+import { createMediaRegistry } from './media.js';
+import { DEFAULT_MEDIA } from './assets.js';
+import { createAlphaImage } from '../shared/utils/alphaCheckerboard.js';
 
 export function lumenSketch(p, { state, onReady }) {
-  let buffer = null;
+  let glc = null; // WEBGL-графика пайплайна
+  let pipeline = null;
+  let media = null;
+  let alphaImg = null;
   const scheduler = createRenderScheduler(p);
+  const vp = {}; // zero-alloc: переиспользуемый viewport-объект
+  const env = { width: 0, height: 0, time: 0, frameRate: 60, totalFrames: 1, media: null };
+
+  function totalFrames() {
+    return Math.max(1, Math.round(state.rec.length.value * state.rec.frameRate));
+  }
 
   function rebuildBuffer() {
     const { width, height } = bufferSize(state.cnv);
-    if (!buffer) {
-      buffer = p.createGraphics(width, height);
-    } else if (buffer.width !== width || buffer.height !== height) {
-      buffer.resizeCanvas(width, height);
+    if (!glc) {
+      glc = p.createGraphics(width, height, p.WEBGL);
+      restoreGlModes(glc);
+      pipeline = createPipeline(glc);
+    } else if (glc.width !== width || glc.height !== height) {
+      glc.resizeCanvas(width, height);
+      restoreGlModes(glc); // FBO p5 автоследуют размеру канваса
     }
-    restoreGraphicsModes(buffer, p);
-    state.runtime.buffer = buffer;
-    drawTestPattern();
-  }
-
-  // Временный контент фазы 2: шахматка + диагональный градиент, чтобы видеть
-  // границы, пропорции и центрирование буфера. Заменяется пайплайном в фазе 3.
-  function drawTestPattern() {
-    const g = buffer;
-    const cell = Math.max(16, Math.round(g.width / 24));
-    g.background(244);
-    for (let y = 0; y < g.height; y += cell) {
-      for (let x = 0; x < g.width; x += cell) {
-        if (((x / cell) + (y / cell)) % 2 < 1) {
-          g.fill(220);
-          g.rect(x, y, cell, cell);
-        }
-      }
-    }
-    for (let x = 0; x < g.width; x += 2) {
-      const t = x / g.width;
-      g.fill(17 + t * 180, 17, 120 - t * 100, 160);
-      g.rect(x, 0, 2, g.height * 0.12);
-    }
-    g.fill(17);
-    g.rect(0, 0, g.width, 4);
-    g.rect(0, g.height - 4, g.width, 4);
-    g.rect(0, 0, 4, g.height);
-    g.rect(g.width - 4, 0, 4, g.height);
+    if (alphaImg) alphaImg.remove();
+    alphaImg = createAlphaImage(p, width, height, 1);
+    state.runtime.buffer = glc;
   }
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+    media = createMediaRegistry(DEFAULT_MEDIA, (url, ok, err) => p.loadImage(url, ok, err));
+    env.media = media;
+    media.whenReady().then(() => scheduler.requestRender()); // дозарисовка fillMedia
     rebuildBuffer();
     scheduler.init();
-    scheduler.setAnimating(false); // фаза 2: анимации ещё нет
+    scheduler.setAnimating(state.cnv.animation);
     scheduler.requestRender();
-    if (onReady) onReady({ scheduler, rebuildBuffer, getBuffer: () => buffer });
+    if (onReady) {
+      onReady({
+        scheduler,
+        rebuildBuffer,
+        getBuffer: () => glc,
+        syncAnimation: () => scheduler.setAnimating(state.cnv.animation),
+      });
+    }
   };
 
   p.draw = () => {
     scheduler.consumeFrame();
+    if (scheduler.isAnimating()) {
+      state.runtime.frame = (state.runtime.frame + 1) % totalFrames();
+    }
+    env.width = glc.width;
+    env.height = glc.height;
+    env.frameRate = state.rec.frameRate;
+    env.totalFrames = totalFrames();
+    env.time = state.runtime.frame / env.totalFrames;
+
+    const outTex = pipeline.render(state.stack, env);
+    glc.clear();
+    glc.image(outTex, -glc.width / 2, -glc.height / 2, glc.width, glc.height);
+
+    computeViewport({ winW: p.width, winH: p.height, bufW: glc.width, bufH: glc.height }, vp);
     p.clear();
-    const v = computeViewport({
-      winW: p.width, winH: p.height,
-      bufW: buffer.width, bufH: buffer.height,
-    });
-    p.image(buffer, v.x, v.y, v.w, v.h);
-    state.runtime.frame++;
+    p.image(alphaImg, vp.x, vp.y, vp.w, vp.h);
+    p.image(glc, vp.x, vp.y, vp.w, vp.h);
   };
 
   p.windowResized = () => {
