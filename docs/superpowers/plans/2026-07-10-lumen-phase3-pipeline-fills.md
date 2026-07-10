@@ -763,7 +763,6 @@ export function restoreGlModes(g) {
 // схема пасса — 47271-47420 (begin/clear/shader/uniforms/rect/end → fbo.color);
 // nextTarget — 46916-46918 (pingFBO ^= 1).
 import { MODULES } from './modules/index.js';
-import { getRenderPasses } from './stack.js';
 
 import lumenVert from '../shaders/lumen.vert?raw';
 import fillColorFrag from '../shaders/fillColor.frag?raw';
@@ -827,11 +826,16 @@ export function createPipeline(glc, p) {
     return fbo.color;
   }
 
-  /** Прогоняет стек; возвращает текстуру финального пасса (или пустую). */
+  /** Прогоняет стек; возвращает текстуру финального пасса (или пустую).
+   *  Итерация инлайн без .filter() — zero-alloc в горячем цикле (AGENTS.md §5);
+   *  getRenderPasses из stack.js — для холодных путей (UI/тесты). */
   function render(stack, env) {
     let tex = fboBlank.color;
-    const passes = getRenderPasses(stack);
-    for (let i = 0; i < passes.length; i++) tex = runPass(passes[i], tex, env);
+    for (let i = 0; i < stack.length; i++) {
+      const inst = stack[i];
+      if (!inst.enabled || inst.type !== 'pass') continue;
+      tex = runPass(inst, tex, env);
+    }
     return tex;
   }
 
