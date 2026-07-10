@@ -3,6 +3,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { createDefaultState, serializeState, restoreState } from './state.js';
 import { lumenSketch } from './app.js';
 import { LEFT_SECTIONS } from './controls.js';
+import { addModule } from './stack.js';
 import { createPanelBuilder, openSections } from '../shared/ui/panelBuilder.js';
 import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
@@ -29,8 +30,24 @@ let api = null; // { scheduler, rebuildBuffer, getBuffer } — придёт из
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
+  if (ctrl.id === 'lm-stack-add') {
+    addModule(state, state.ui.devModule);
+    api?.scheduler.requestRender();
+    saveState();
+    return;
+  }
+  if (ctrl.id === 'lm-stack-clear') {
+    state.stack.length = 0; // AGENTS.md §5: очистка без реаллокации
+    api?.scheduler.requestRender();
+    saveState();
+    return;
+  }
   if (ctrl.regen === 'buffer' && api) {
     api.rebuildBuffer();
+    api.scheduler.requestRender();
+  }
+  if (ctrl.regen === 'animation' && api) {
+    api.syncAnimation();
     api.scheduler.requestRender();
   }
   saveState();
@@ -68,7 +85,7 @@ function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
   panel.buildSections(root, LEFT_SECTIONS);
-  openSections(root, [0]);
+  openSections(root, [0, 1]);
   document.getElementById('lm-btn-save-png')
     .addEventListener('click', () => applyChange({ id: 'lm-btn-save-png' }));
 }

@@ -51,7 +51,7 @@ export function createDefaultState() {
     },
     stack: [], // [{ id, type: 'pass'|'mask', module, enabled, params, maskMembers? }]
     // --- Не сериализуется ---
-    ui: { selectedId: null },
+    ui: { selectedId: null, devModule: 'fillGradient' },
     runtime: { frame: 0, buffer: null, needsRender: true },
   };
 }
