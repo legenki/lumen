@@ -778,8 +778,11 @@ const FRAG_SOURCES = {
   fillNoise: fillNoiseFrag,
 };
 
-export function createPipeline(glc) {
-  const fboOpts = { format: glc.HALF_FLOAT, depth: false, antialias: true };
+export function createPipeline(glc, p) {
+  // ВАЖНО: p5.Graphics НЕ наследует константы p5.prototype (p5 2.2.3) —
+  // glc.HALF_FLOAT === undefined и формат молча деградирует в UNSIGNED_BYTE.
+  // Константу берём с корневого инстанса p.
+  const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: true };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
   let ping = 0;
@@ -869,7 +872,7 @@ export function lumenSketch(p, { state, onReady }) {
     if (!glc) {
       glc = p.createGraphics(width, height, p.WEBGL);
       restoreGlModes(glc);
-      pipeline = createPipeline(glc);
+      pipeline = createPipeline(glc, p);
     } else if (glc.width !== width || glc.height !== height) {
       glc.resizeCanvas(width, height);
       restoreGlModes(glc); // FBO p5 автоследуют размеру канваса
