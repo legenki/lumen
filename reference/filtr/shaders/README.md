@@ -58,6 +58,9 @@ varying — `vTexCoord`. Все fragment-шейдеры ожидают `in vec2 
 
 ## 3. Манифест loadShader (ключ → vert/frag)
 
+> Здесь — сырые данные манифеста как они есть в бандле; за проверенной картой
+> модуль→шейдеры см. §4.
+
 `grep -n "loadShader(" bundle-pretty.js` даёт единственное вхождение:
 
 ```
@@ -81,7 +84,7 @@ varying — `vTexCoord`. Все fragment-шейдеры ожидают `in vec2 
 Полный манифест (`bundle-pretty.js:46780-46799`), 19 пар `[key, vert, frag]` (все
 `vert` = `Wt`, т.е. общий inline vertex-шейдер выше):
 
-| key (module)       | vert | frag source                                                  | Наш файл |
+| key (запись манифеста) | vert | frag source                                              | Наш файл |
 |---------------------|------|---------------------------------------------------------------|----------|
 | fillMedia           | Wt   | `assets/fillMedia-Dg4rXJaa.frag` (var `d8`)                    | `fillMedia.frag` |
 | fillColor           | Wt   | `assets/fillColor-CHUbhfq3.frag` (var `p8`)                    | `fillColor.frag` |
@@ -102,6 +105,11 @@ varying — `vTexCoord`. Все fragment-шейдеры ожидают `in vec2 
 | lensGrid            | Wt   | `assets/lensGrid-BlATGk1u.frag` (var `R8`)                     | `lensGrid.frag` |
 | warpGrid            | Wt   | `assets/warpGrid-CQc9h_M_.frag` (var `x8`)                     | `warpGrid.frag` |
 | blurNoise           | Wt   | `assets/blurNoise-CO-OBL7q.frag` (var `H8`)                    | `blurNoise.frag` |
+
+**Внимание:** это сырой 19-строчный шейдерный манифест, а НЕ список модулей
+эффектов: в нём есть `blurComp` (общий композитный шейдер, не модуль) и нет
+`blurMotion` (модуль без записи в манифесте). Авторитетная карта модуль→шейдеры —
+в §4.
 
 Примечание: имя ассет-файла `blurNoise-CO-OBL7q.frag` содержит дефис внутри самого
 хэша (`CO-OBL7q`), из-за чего наивное `${base%-*}` (снятие всего после последнего
