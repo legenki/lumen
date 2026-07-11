@@ -14,6 +14,10 @@ import { displaceCubic } from './displaceCubic.js';
 import { displaceSimplex } from './displaceSimplex.js';
 import { displaceTexture } from './displaceTexture.js';
 
+import { blurGaussian } from './blurGaussian.js';
+import { blurMotion } from './blurMotion.js';
+import { blurNoise } from './blurNoise.js';
+
 export const MODULES = {
   fillColor,
   fillGradient,
@@ -29,4 +33,8 @@ export const MODULES = {
   displaceCubic,
   displaceSimplex,
   displaceTexture,
+
+  blurGaussian,
+  blurMotion,
+  blurNoise,
 };
