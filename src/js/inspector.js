@@ -66,6 +66,7 @@ export function renderInspector(root, { state, onParamChange }) {
         },
       });
       cp.refresh();
+      content.lastElementChild.dataset.controlId = controlId(c);
     } else if (c.type === 'gradientMapper') {
       const gm = createGradientMapper({
         container: content,
@@ -74,6 +75,7 @@ export function renderInspector(root, { state, onParamChange }) {
         onChange: () => onParamChange(),
       });
       gm.refresh();
+      content.lastElementChild.dataset.controlId = controlId(c);
     } else {
       const row = panel.buildControl({ ...c, id: controlId(c) });
       content.appendChild(row);
