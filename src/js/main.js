@@ -28,6 +28,7 @@ const { saveState, loadState } = createPersistence(
 loadState();
 
 let api = null; // { scheduler, rebuildBuffer, getBuffer } — придёт из sketch onReady
+let layersSection = null; // { refresh } — для обновления бейджей/индента после Members-toggle
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
@@ -74,6 +75,7 @@ function refreshInspector() {
   renderInspector(document.getElementById('lm-inspector'), {
     state,
     onParamChange() {
+      layersSection?.refresh(); // Members-toggle меняет badge/indent маски в LayerList
       api?.scheduler.requestRender();
       saveState();
     },
@@ -84,7 +86,7 @@ function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
   panel.buildSections(root, LEFT_SECTIONS);
-  buildLayersSection(root, {
+  layersSection = buildLayersSection(root, {
     state,
     onStackChange() {
       api?.scheduler.requestRender();

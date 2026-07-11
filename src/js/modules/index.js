@@ -22,6 +22,8 @@ import { embossEffect } from './embossEffect.js';
 import { lensGrid } from './lensGrid.js';
 import { warpGrid } from './warpGrid.js';
 
+import { maskMedia } from './maskMedia.js';
+
 export const MODULES = {
   fillColor,
   fillGradient,
@@ -45,4 +47,6 @@ export const MODULES = {
   embossEffect,
   lensGrid,
   warpGrid,
+
+  maskMedia,
 };

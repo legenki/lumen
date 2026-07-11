@@ -1,9 +1,38 @@
 // LUMEN — секция Layers: Module List + Add To Stack + LayerList (спека §4).
-// MASK-группы: дисплей-модель уже поддерживает indent/badge; до фазы 5 масок
-// в реестре нет, поэтому строки плоские.
+// MASK-группы: display-модель строится buildLayerRows() — семантика
+// getMaskBlockMemberIds (bundle-pretty.js:48168-48182): НЕПРЕРЫВНЫЙ блок
+// инстансов сразу после маски, чьи id входят в её maskMembers. Обрыв
+// непрерывности прекращает индент для последующих, даже если они формально
+// перечислены в maskMembers.
 import { createLayerList } from '../shared/ui/layerList.js';
 import { MODULES } from './modules/index.js';
 import { addModule, duplicateModule, removeModule, moveModule } from './stack.js';
+
+/** Чистая display-модель Layers-списка (тестируется в layersPanel.test.js).
+ *  Возвращает [{ id, label, enabled, isMask, indent, badge }] по state.stack. */
+export function buildLayerRows(state) {
+  const stack = state.stack;
+  const indentIds = new Set();
+
+  for (let i = 0; i < stack.length; i++) {
+    const inst = stack[i];
+    if (inst.type !== 'mask' || !Array.isArray(inst.maskMembers) || inst.maskMembers.length === 0) continue;
+    const members = new Set(inst.maskMembers);
+    for (let j = i + 1; j < stack.length; j++) {
+      if (!members.has(stack[j].id)) break; // разрыв непрерывности — индент прекращается
+      indentIds.add(stack[j].id);
+    }
+  }
+
+  return stack.map((m) => ({
+    id: m.id,
+    label: MODULES[m.module]?.label ?? m.module,
+    enabled: m.enabled,
+    isMask: m.type === 'mask',
+    indent: indentIds.has(m.id),
+    badge: Array.isArray(m.maskMembers) ? m.maskMembers.length : 0,
+  }));
+}
 
 export function buildLayersSection(root, { state, onStackChange, onSelect }) {
   const sec = document.createElement('section');
@@ -35,15 +64,7 @@ export function buildLayersSection(root, { state, onStackChange, onSelect }) {
 
   const layerList = createLayerList({
     container: sec.querySelector('#lm-layers-list'),
-    getLayers: () =>
-      state.stack.map((m) => ({
-        id: m.id,
-        label: MODULES[m.module]?.label ?? m.module,
-        enabled: m.enabled,
-        isMask: m.type === 'mask',
-        indent: false, // MASK-члены — фаза 5
-        badge: Array.isArray(m.maskMembers) ? m.maskMembers.length : 0,
-      })),
+    getLayers: () => buildLayerRows(state),
     getSelectedId: () => state.ui.selectedId,
     callbacks: {
       onSelect(id) {

@@ -16,13 +16,17 @@ function nextId(existingIds) {
 export function createModuleInstance(moduleKey, existingIds) {
   const def = MODULES[moduleKey];
   if (!def) throw new Error(`Unknown module: ${moduleKey}`);
-  return {
+  const inst = {
     id: nextId(existingIds),
     type: def.type,
     module: moduleKey,
     enabled: true,
     params: structuredClone(def.defaults),
   };
+  // maskMembers — поле инстанса (не params): список id пассов, на которые
+  // действует эта маска (см. maskMedia.js / pipeline.js pushMask).
+  if (def.type === 'mask') inst.maskMembers = [];
+  return inst;
 }
 
 export function addModule(state, moduleKey) {

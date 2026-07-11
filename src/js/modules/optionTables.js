@@ -112,3 +112,11 @@ export const WARP_GRID_FALLOFF_MODES = {
   'Center': 1,
   'Edges': 2,
 };
+
+export const MASK_CHANNELS = {
+  Luma: 0,
+  Alpha: 1,
+  'R Channel': 2,
+  'G Channel': 3,
+  'B Channel': 4,
+};

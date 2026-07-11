@@ -60,6 +60,30 @@ describe('duplicateModule', () => {
   });
 });
 
+describe('mask instances', () => {
+  it('createModuleInstance gives mask-type instances a maskMembers array', () => {
+    const inst = createModuleInstance('maskMedia', []);
+    expect(inst.type).toBe('mask');
+    expect(Array.isArray(inst.maskMembers)).toBe(true);
+    expect(inst.maskMembers).toEqual([]);
+  });
+
+  it('pass-type instances have no maskMembers field', () => {
+    const inst = createModuleInstance('fillColor', []);
+    expect(inst.maskMembers).toBeUndefined();
+  });
+
+  it('duplicateModule copies maskMembers as an independent array', () => {
+    const s = createDefaultState();
+    const mask = addModule(s, 'maskMedia');
+    mask.maskMembers.push('p05', 'p06');
+    const dup = duplicateModule(s, mask.id);
+    expect(dup.maskMembers).toEqual(['p05', 'p06']);
+    dup.maskMembers.push('p07');
+    expect(mask.maskMembers).toEqual(['p05', 'p06']); // независимая копия
+  });
+});
+
 describe('moveModule', () => {
   it('moves instance between indices', () => {
     const s = createDefaultState();
