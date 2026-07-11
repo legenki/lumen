@@ -73,4 +73,22 @@ describe('serialize/restore round-trip', () => {
     expect(restoreState(t, { v: 999, cnv: { ratio: '9:16' } })).toBe(false);
     expect(t.cnv.ratio).toBe('1:1');
   });
+  it('creates a userPresets array in persisted state', () => {
+    const s = createDefaultState();
+    expect(s.userPresets).toEqual([]);
+  });
+  it('round-trips userPresets through serialize/restore', () => {
+    const s = createDefaultState();
+    s.userPresets.push({ toolId: 'lumen', version: 3, name: 'My', modules: [] });
+    const snap = serializeState(s);
+    const t = createDefaultState();
+    restoreState(t, snap);
+    expect(t.userPresets).toHaveLength(1);
+    expect(t.userPresets[0].name).toBe('My');
+  });
+  it('ignores non-array userPresets on restore', () => {
+    const t = createDefaultState();
+    restoreState(t, { v: SCHEMA_VERSION, userPresets: 'bogus' });
+    expect(t.userPresets).toEqual([]);
+  });
 });

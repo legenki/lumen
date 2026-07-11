@@ -8,6 +8,7 @@ import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
 import { buildLayersSection } from './layersPanel.js';
 import { buildMediaSection } from './mediaPanel.js';
+import { buildPresetPanelSection } from './presetPanel.js';
 import { renderInspector } from './inspector.js';
 import { PRESETS } from './presets.js';
 import { applyPresetToState } from './presetConvert.js';
@@ -102,6 +103,16 @@ function refreshInspector() {
 function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
+  buildPresetPanelSection(root, {
+    state,
+    onApply() {
+      api?.rebuildBuffer();
+      api?.scheduler.requestRender();
+      saveState();
+      layersSection?.refresh();
+      refreshInspector();
+    },
+  });
   panel.buildSections(root, LEFT_SECTIONS);
   layersSection = buildLayersSection(root, {
     state,
@@ -120,7 +131,7 @@ function buildUI() {
       refreshInspector(); // инспектор пересобирает media-select
     },
   });
-  openSections(root, [0, 1, 2]);
+  openSections(root, [0, 1, 2, 3]);
   // Fix: use onclick to avoid duplicate listeners on repeated buildUI calls
   const pngBtn = document.getElementById('lm-btn-save-png');
   if (pngBtn) {

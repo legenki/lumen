@@ -50,13 +50,14 @@ export function createDefaultState() {
       h264: 20,
     },
     stack: [], // [{ id, type: 'pass'|'mask', module, enabled, params, maskMembers? }]
+    userPresets: [], // Пользовательские пресеты (старый v2-формат) — фаза 6.
     // --- Не сериализуется ---
     ui: { selectedId: null },
     runtime: { frame: 0, buffer: null, needsRender: true },
   };
 }
 
-const PERSISTED = ['cnv', 'rec', 'stack'];
+const PERSISTED = ['cnv', 'rec', 'stack', 'userPresets'];
 
 export function serializeState(state) {
   const snap = { v: SCHEMA_VERSION };
@@ -75,6 +76,8 @@ export function restoreState(state, snap) {
     if (!(key in snap)) continue;
     if (key === 'stack') {
       state.stack = Array.isArray(snap.stack) ? structuredClone(snap.stack) : [];
+    } else if (key === 'userPresets') {
+      state.userPresets = Array.isArray(snap.userPresets) ? structuredClone(snap.userPresets) : [];
     } else {
       mergeKnown(state[key], snap[key]);
     }
