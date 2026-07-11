@@ -40,6 +40,7 @@ export function lumenSketch(p, { state, onReady }) {
     } else if (glc.width !== width || glc.height !== height) {
       glc.resizeCanvas(width, height);
       restoreGlModes(glc); // FBO p5 автоследуют размеру канваса
+      pipeline.resizeAll(); // дефолтные fbo p5 авторесайзятся; пул/blur — вручную
     }
     if (alphaImg) alphaImg.remove();
     alphaImg = createAlphaImage(p, width, height, 1);

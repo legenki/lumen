@@ -104,7 +104,7 @@ git commit -m "feat: vendor remaining shaders, math helpers and blue-noise textu
 - Create: `src/js/maskStack.js` (+ test), `src/js/blurEngine.js`
 - Modify: `src/js/pipeline.js`, `src/js/app.js` (env.scaleValue)
 
-- [ ] **Step 1: TDD mask-стек** — `src/js/maskStack.test.js`. Семантика — дословно bF/T8/vF (bundle 46951-46986) + сброс на кадр (47605):
+- [x] **Step 1: TDD mask-стек** — `src/js/maskStack.test.js`. Семантика — дословно bF/T8/vF (bundle 46951-46986) + сброс на кадр (47605):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -187,9 +187,9 @@ export function consumeMaskCharge(ctx, _wasUsed) {
 }
 ```
 
-- [ ] **Step 2: blur-движок** — `src/js/blurEngine.js`: ДОСЛОВНАЯ транскрипция класса iIA (bundle 88737-88846) в наши имена. Конструктор `createBlurEngine(glc, p, shaders)` (shaders.blurComp — копи/композит, shaders.blurGaussianDir — директиональный); методы `gaussian(inputTex, targetFbo, opts)`, `motion(inputTex, targetFbo, opts)`, `copy(tex, targetFbo, w, h, opts)`, `resize(w, h)`. Переносить все константы (`FASTKERNEL_SIGMA_PCT=0.015`, `SCALE_CURVE_EXP=0.001`, `SHADER_MAX_RADIUS_PX=480`), формулы `_sigmaToPx`/`_scaleBySigmaPxCurved`/anti-overflow `y($,O)`, температурные FBO `tmpH/tmpHV/stage` (HALF_FLOAT через `p.HALF_FLOAT`!), `glc.textureWrap(glc.CLAMP)` перед пассами, ветки `t.color === A` (self-target через stage) и mix/blend-композит через copy. Открой bundle 88737-88846 рядом и переноси строка-в-строку; uniforms шейдера: u_tex,u_res,u_dir,u_sigmaPx,u_radiusPx,u_inputIsPremult,u_fastKernel,u_maskUse,u_mask (blurGaussianDir) и u_tex,u_useSrc,u_mix,u_blendMode,u_src (blurComp).
+- [x] **Step 2: blur-движок** — `src/js/blurEngine.js`: ДОСЛОВНАЯ транскрипция класса iIA (bundle 88737-88846) в наши имена. Конструктор `createBlurEngine(glc, p, shaders)` (shaders.blurComp — копи/композит, shaders.blurGaussianDir — директиональный); методы `gaussian(inputTex, targetFbo, opts)`, `motion(inputTex, targetFbo, opts)`, `copy(tex, targetFbo, w, h, opts)`, `resize(w, h)`. Переносить все константы (`FASTKERNEL_SIGMA_PCT=0.015`, `SCALE_CURVE_EXP=0.001`, `SHADER_MAX_RADIUS_PX=480`), формулы `_sigmaToPx`/`_scaleBySigmaPxCurved`/anti-overflow `y($,O)`, температурные FBO `tmpH/tmpHV/stage` (HALF_FLOAT через `p.HALF_FLOAT`!), `glc.textureWrap(glc.CLAMP)` перед пассами, ветки `t.color === A` (self-target через stage) и mix/blend-композит через copy. Открой bundle 88737-88846 рядом и переноси строка-в-строку; uniforms шейдера: u_tex,u_res,u_dir,u_sigmaPx,u_radiusPx,u_inputIsPremult,u_fastKernel,u_maskUse,u_mask (blurGaussianDir) и u_tex,u_useSrc,u_mix,u_blendMode,u_src (blurComp).
 
-- [ ] **Step 3: pipeline.js v2** — изменения:
+- [x] **Step 3: pipeline.js v2** — изменения:
   1. импортировать все новые фраги (?raw) и добавить в FRAG_SOURCES под ключами: blurComp, blurGaussianDir, blurNoise, displaceCubic, displaceSimplex, displaceSine, displaceTexture, gradientMap, colorCorrection, rgbShift, lumaBands, embossEffect, lensGrid, warpGrid, maskMedia;
   2. `const pool = {};` + `getBuffer(name)` — транскрипция bundle 46918-46934: дефолт-опции {width: glc.width, height: glc.height, format: p.HALF_FLOAT, depth: false, antialias: true}, ресайз при несовпадении, кэш в pool;
   3. `const blur = createBlurEngine(glc, p, shaders);`
@@ -199,9 +199,9 @@ export function consumeMaskCharge(ctx, _wasUsed) {
   7. `resizeAll()` при rebuildBuffer (glc.resizeCanvas уже авторесайзит дефолтные FBO; пул и blur — вручную: `Object.values(pool).forEach(f => f.resize(w, h)); blur.resize(w, h);` — вызвать из app.js после resizeCanvas; экспортировать из createPipeline).
   8. env.scaleValue: в app.js draw — `env.scaleValue = state.cnv.scale.value;` (нужен blurNoise/rgbShift/emboss/lens).
 
-- [ ] **Step 4:** `npm test` (maskStack PASS, прежние живы), lint, build; dev-smoke curl. Рендер fills не должен измениться (регрессия — контроллер).
+- [x] **Step 4:** `npm test` (maskStack PASS, прежние живы), lint, build; dev-smoke curl. Рендер fills не должен измениться (регрессия — контроллер).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/js/maskStack.js src/js/maskStack.test.js src/js/blurEngine.js src/js/pipeline.js src/js/app.js
