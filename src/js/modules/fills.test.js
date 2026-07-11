@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { MODULES } from './index.js';
 import { GRADIENT_MAX } from './uniformUtils.js';
+import { getByPath } from '../../shared/ui/panelBuilder.js';
+import { BLEND_MODES, WRAP_MODES, ALPHA_MODES, GRADIENT_MODES } from './optionTables.js';
 
 const ENV = { width: 1200, height: 960, time: 0.25, frameRate: 60, totalFrames: 600, media: {} };
 
@@ -95,5 +97,49 @@ describe('zero-alloc contract', () => {
     const a = m.uniforms(m.defaults, ENV);
     const b = m.uniforms(m.defaults, ENV);
     expect(b).toBe(a);
+  });
+});
+
+describe('option tables (verbatim from reference)', () => {
+  it('blend modes: 26 entries Normal..Luminosity', () => {
+    expect(Object.keys(BLEND_MODES)).toHaveLength(26);
+    expect(BLEND_MODES.Normal).toBe(0);
+    expect(BLEND_MODES.Luminosity).toBe(25);
+  });
+  it('wrap/alpha/gradient modes', () => {
+    expect(WRAP_MODES).toEqual({ CLAMP: 0, REPEAT: 1, MIRROR: 2, TRANSPARENT: 3 });
+    expect(ALPHA_MODES).toEqual({ 'Ignore Source Alpha': 0, 'Fade by Source Alpha': 1 });
+    expect(GRADIENT_MODES).toEqual({ Linear: 0, Radial: 1, Angular: 2, Box: 3, Triangle: 4 });
+  });
+});
+
+describe('module control schemas', () => {
+  it('every module declares controls and every path resolves into defaults', () => {
+    for (const def of Object.values(MODULES)) {
+      expect(Array.isArray(def.controls)).toBe(true);
+      expect(def.controls.length).toBeGreaterThan(0);
+      for (const c of def.controls) {
+        expect(getByPath(def.defaults, c.path)).not.toBeUndefined();
+      }
+    }
+  });
+  it('fillGradient has gradientMapper + centerPoint with reference axes', () => {
+    const cs = MODULES.fillGradient.controls;
+    expect(cs.find((c) => c.type === 'gradientMapper')?.path).toBe('gradient');
+    const cp = cs.find((c) => c.type === 'centerPoint');
+    expect(cp.path).toBe('gradCenter');
+    expect(cp.axes.x).toEqual({ min: -0.5, max: 0.5, step: 0.01 });
+  });
+  it('fillMedia position axes are ±50 (reference), image is a select over DEFAULT_MEDIA', () => {
+    const cs = MODULES.fillMedia.controls;
+    expect(cs.find((c) => c.path === 'position')?.axes.x).toEqual({ min: -50, max: 50, step: 0.1 });
+    const img = cs.find((c) => c.path === 'image');
+    expect(img.type).toBe('select');
+    expect(Object.values(img.options)).toContain('text0');
+  });
+  it('fillNoise threshold is two sliders (interval transcription)', () => {
+    const cs = MODULES.fillNoise.controls;
+    expect(cs.find((c) => c.path === 'threshold.min')).toBeTruthy();
+    expect(cs.find((c) => c.path === 'threshold.max')).toBeTruthy();
   });
 });

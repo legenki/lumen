@@ -1,5 +1,6 @@
 // Транскрипция пасса fillGradient (bundle-pretty.js:47305-47327).
 import { radians, packGradient, GRADIENT_MAX } from './uniformUtils.js';
+import { BLEND_MODES, ALPHA_MODES, GRADIENT_MODES, WRAP_MODES } from './optionTables.js';
 
 const DITHER_STRENGTH = 10 / 255; // fF, bundle-pretty.js:39180
 
@@ -25,6 +26,24 @@ export const fillGradient = {
     gradMode: 0, alphaMode: 0, blendMode: 0, gradScale: 1,
     gradCenter: { x: 0, y: 0 }, gradAngle: 0, gradReverse: false, wrapMode: 0,
   },
+  controls: [
+    { type: 'select', path: 'blendMode', label: 'Blending Mode', options: BLEND_MODES },
+    { type: 'slider', path: 'mix', label: 'Pass Mix', min: 0, max: 1, step: 0.01 },
+    { type: 'select', path: 'gradMode', label: 'Gradient Mode', options: GRADIENT_MODES },
+    { type: 'gradientMapper', path: 'gradient', label: 'Gradient' },
+    { type: 'select', path: 'alphaMode', label: 'Alpha Mode', options: ALPHA_MODES },
+    {
+      type: 'slider', path: 'gradScale', label: 'Gradient Scale',
+      min: 0.01, max: 3, step: 0.01, showIf: { path: 'gradMode', notEquals: 2 },
+    },
+    { type: 'slider', path: 'gradAngle', label: 'Gradient Angle', min: -180, max: 180, step: 1 },
+    { type: 'check', path: 'gradReverse', label: 'Reverse Gradient' },
+    {
+      type: 'centerPoint', path: 'gradCenter', label: 'Center Point',
+      axes: { x: { min: -0.5, max: 0.5, step: 0.01 }, y: { min: -0.5, max: 0.5, step: 0.01 } },
+    },
+    { type: 'select', path: 'wrapMode', label: 'Wrapping Mode', options: WRAP_MODES },
+  ],
   uniforms(p, env) {
     U.u_aspect = env.width / env.height;
     U.u_resolution[0] = env.width;
