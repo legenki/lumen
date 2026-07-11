@@ -18,6 +18,10 @@ import { blurGaussian } from './blurGaussian.js';
 import { blurMotion } from './blurMotion.js';
 import { blurNoise } from './blurNoise.js';
 
+import { embossEffect } from './embossEffect.js';
+import { lensGrid } from './lensGrid.js';
+import { warpGrid } from './warpGrid.js';
+
 export const MODULES = {
   fillColor,
   fillGradient,
@@ -37,4 +41,8 @@ export const MODULES = {
   blurGaussian,
   blurMotion,
   blurNoise,
+
+  embossEffect,
+  lensGrid,
+  warpGrid,
 };

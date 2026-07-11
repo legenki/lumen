@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hexToRgba, radians, packGradient, GRADIENT_MAX, map, EASE, QUALITY_SCALE } from './uniformUtils.js';
+import { hexToRgba, hexToRgb, radians, packGradient, GRADIENT_MAX, map, EASE, QUALITY_SCALE } from './uniformUtils.js';
 
 describe('hexToRgba', () => {
   it('converts #RRGGBB + alpha into reused [r,g,b,a] 0..1', () => {
@@ -11,6 +11,26 @@ describe('hexToRgba', () => {
   it('supports #RGB shorthand', () => {
     const r = hexToRgba('#0F0', 1, new Float32Array(4));
     expect(Array.from(r)).toEqual([0, 1, 0, 1]);
+  });
+});
+
+describe('hexToRgb', () => {
+  it('converts #RRGGBB into reused [r,g,b] 0..1', () => {
+    const out = new Float32Array(3);
+    const r = hexToRgb('#FF0000', out);
+    expect(r).toBe(out);
+    expect(Array.from(r)).toEqual([1, 0, 0]);
+  });
+  it('supports #RGB shorthand', () => {
+    const out = new Float32Array(3);
+    const r = hexToRgb('#0F0', out);
+    expect(r).toBe(out);
+    expect(Array.from(r)).toEqual([0, 1, 0]);
+  });
+  it('maintains identity (returns same buffer)', () => {
+    const out = new Float32Array(3);
+    const r = hexToRgb('#CCCCCC', out);
+    expect(r).toBe(out);
   });
 });
 

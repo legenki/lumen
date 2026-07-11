@@ -15,6 +15,16 @@ export function hexToRgba(hex, alpha, out) {
   return out;
 }
 
+export function hexToRgb(hex, out) {
+  const o = hex[0] === '#' ? 1 : 0;
+  const short = hex.length - o === 3;
+  const ch = (i) => parseInt(short ? hex[o + i] + hex[o + i] : hex.substr(o + i * 2, 2), 16);
+  out[0] = ch(0) / 255;
+  out[1] = ch(1) / 255;
+  out[2] = ch(2) / 255;
+  return out;
+}
+
 export function radians(deg) {
   return (deg * Math.PI) / 180;
 }

@@ -75,3 +75,40 @@ export const RGB_SHIFT_MODES = {
   Center: 1,
   Edges: 2,
 };
+
+export const EMBOSS_HEIGHT_SOURCE_MODES = {
+  Luma: 0,
+  Alpha: 1,
+};
+
+export const EMBOSS_COLOR_MODES = {
+  'Grayscale': 0,
+  'Colored Lighting': 1,
+};
+
+export const EMBOSS_CONTOUR_MODES = {
+  'Linear': 0,
+  'Cone': 1,
+  'Cone Inverted': 2,
+  'Cove Deep': 3,
+  'Cove Shallow': 4,
+  'Ring Double': 5,
+  'Ring Triple': 6,
+  'Arch': 7,
+  'Bump': 8,
+  'Half Round': 9,
+  'Notch': 10,
+  'Triangle': 11,
+};
+
+export const WARP_GRID_MODES = {
+  '1D': 0,
+  '2D Unified': 1,
+  '2D Separate': 2,
+};
+
+export const WARP_GRID_FALLOFF_MODES = {
+  'Off': 0,
+  'Center': 1,
+  'Edges': 2,
+};

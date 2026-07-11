@@ -285,7 +285,7 @@ git commit -m "feat: pipeline v2 with fbo pool, mask stack and blur engine"
 
 **warpGrid** (47476-47497) — обычный uniforms(): gridCells по gridMode (0→[p.gridCell,1]; 1→[p.gridCell,p.gridCell]; 2→[p.gridCells.x,p.gridCells.y]); falloffFocus (0→[p.falloffFocus1D+0.5, 0.5]; иначе [p.falloffFocus2D.x+0.5, p.falloffFocus2D.y+0.5]); u_strength EASE.sineIn(p.strength); u_aspect w/h; u_mix; u_gridScale; u_gridAngle radians; u_blendEdge p.cellFeather; u_falloffMode; u_falloffRange [min,max]; u_wrapMode. Controls: showIf-логика warpGrid из reference panels (falloffFocus1D при gridMode 0, falloffFocus2D иначе — см. reference/filtr/modules.js, там showIf с in-массивами: наш inspector поддерживает notEquals — добавить в inspector поддержку `showIf: { path, equals }` и `{ path, in: [...] }` ЕСЛИ reference так требует; сверься и реализуй минимально необходимое, с тестом в fxGroup.test.js на видимость).
 
-- [ ] Шаги TDD (формулы: depth×0.1, specPower×25, shadowPower×5, lightDir тройка, warp falloffFocus+0.5), реализация, defaults-сверка (18 OK), commit `feat: emboss, lens grid and warp grid modules`.
+- [x] Шаги TDD (формулы: depth×0.1, specPower×25, shadowPower×5, lightDir тройка, warp falloffFocus+0.5), реализация, defaults-сверка (18 OK), commit `feat: emboss, lens grid and warp grid modules`.
 
 ---
 
