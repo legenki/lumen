@@ -49,6 +49,27 @@ export const GRADIENT_MODES = {
   Triangle: 4,
 };
 
+export const SINE_MODES = {
+  'Flow (2D)': 0,
+  'Radial (2D)': 1,
+  'Radial (Center)': 2,
+};
+
+export const FREQ_MODES = {
+  'Low Frequency': 0,
+  'High Frequency': 1,
+};
+
+export const SIMPLEX_NOISE_MODES = {
+  '1D Noise': 0,
+  '2D Noise': 1,
+};
+
+export const DISPLACE_TEXTURE_SOURCE_MODES = {
+  'Previous Pass': 0,
+  'Media File': 1,
+};
+
 export const RGB_SHIFT_MODES = {
   Directional: 0,
   Center: 1,
