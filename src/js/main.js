@@ -7,6 +7,7 @@ import { createPanelBuilder, openSections } from '../shared/ui/panelBuilder.js';
 import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
 import { buildLayersSection } from './layersPanel.js';
+import { buildMediaSection } from './mediaPanel.js';
 import { renderInspector } from './inspector.js';
 import { PRESETS } from './presets.js';
 import { applyPresetToState } from './presetConvert.js';
@@ -42,7 +43,7 @@ const { saveState, loadState } = createPersistence(
 );
 loadState();
 
-let api = null; // { scheduler, rebuildBuffer, getBuffer } — придёт из sketch onReady
+let api = null; // { scheduler, rebuildBuffer, getBuffer, getMedia, getP } — придёт из sketch onReady
 let layersSection = null; // { refresh } — для обновления бейджей/индента после Members-toggle
 
 function applyChange(ctrl) {
@@ -89,6 +90,7 @@ const panel = createPanelBuilder({ state, applyChange, refreshVisibility });
 function refreshInspector() {
   renderInspector(document.getElementById('lm-inspector'), {
     state,
+    getMedia: () => api?.getMedia(),
     onParamChange() {
       layersSection?.refresh(); // Members-toggle меняет badge/indent маски в LayerList
       api?.scheduler.requestRender();
@@ -109,7 +111,16 @@ function buildUI() {
     },
     onSelect: refreshInspector,
   });
-  openSections(root, [0, 1]);
+  buildMediaSection(root, {
+    p: api?.getP?.() ?? null,
+    media: api?.getMedia?.() ?? null,
+    onChange() {
+      api?.scheduler.requestRender();
+      // user-слоты НЕ сериализуем (blob:-URL живут в памяти сессии) — persistence не трогаем
+      refreshInspector(); // инспектор пересобирает media-select
+    },
+  });
+  openSections(root, [0, 1, 2]);
   // Fix: use onclick to avoid duplicate listeners on repeated buildUI calls
   const pngBtn = document.getElementById('lm-btn-save-png');
   if (pngBtn) {

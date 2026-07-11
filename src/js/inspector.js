@@ -5,7 +5,6 @@ import { createPanelBuilder, getByPath, escapeHtml } from '../shared/ui/panelBui
 import { createCenterPoint } from '../shared/ui/centerPoint.js';
 import { createGradientMapper } from '../shared/ui/gradientMapper.js';
 import { MODULES } from './modules/index.js';
-import { DEFAULT_MEDIA } from './assets.js';
 
 /** Видимость контрола по showIf: { path, notEquals? | equals? | in? }. */
 export function isControlVisible(control, params) {
@@ -17,7 +16,7 @@ export function isControlVisible(control, params) {
   return true;
 }
 
-export function renderInspector(root, { state, onParamChange }) {
+export function renderInspector(root, { state, getMedia, onParamChange }) {
   root.innerHTML = '';
   const inst = state.stack.find((m) => m.id === state.ui.selectedId);
   if (!inst) {
@@ -78,7 +77,13 @@ export function renderInspector(root, { state, onParamChange }) {
       gm.refresh();
       content.lastElementChild.dataset.controlId = controlId(c);
     } else if (c.type === 'media') {
-      const mediaOptions = Object.fromEntries(Object.keys(DEFAULT_MEDIA).map((k) => [k, k]));
+      const registry = getMedia();
+      const mediaOptions = Object.fromEntries(
+        registry.keys().map((k) => {
+          const e = registry.get(k);
+          return [e?.name || k, k];
+        }),
+      );
       const row = panel.buildControl({
         ...c,
         type: 'select',

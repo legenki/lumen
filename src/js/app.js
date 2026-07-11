@@ -71,6 +71,8 @@ export function lumenSketch(p, { state, onReady }) {
         rebuildBuffer,
         getBuffer: () => glc,
         syncAnimation: () => scheduler.setAnimating(state.cnv.animation),
+        getMedia: () => media,
+        getP: () => p,
       });
     }
   };

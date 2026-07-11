@@ -1,5 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { isControlVisible, renderInspector } from './inspector.js';
+import { DEFAULT_MEDIA } from './assets.js';
+
+/** Fake media registry over DEFAULT_MEDIA, mirroring createMediaRegistry's
+ *  get/keys shape closely enough for inspector's media-select control. */
+function fakeGetMedia() {
+  const entries = new Map(
+    Object.keys(DEFAULT_MEDIA).map((k) => [k, { key: k, name: k, user: false }]),
+  );
+  return {
+    keys: () => Array.from(entries.keys()),
+    get: (k) => entries.get(k),
+  };
+}
 
 describe('isControlVisible (showIf predicate)', () => {
   it('control without showIf is always visible', () => {
@@ -64,6 +77,7 @@ describe('renderInspector media control', () => {
 
     renderInspector(root, {
       state,
+      getMedia: fakeGetMedia,
       onParamChange: () => {},
     });
 
@@ -106,6 +120,7 @@ describe('renderInspector media control', () => {
 
     renderInspector(root, {
       state,
+      getMedia: fakeGetMedia,
       onParamChange: () => {},
     });
 
@@ -140,6 +155,7 @@ describe('renderInspector media control', () => {
 
     renderInspector(root, {
       state,
+      getMedia: fakeGetMedia,
       onParamChange: () => {
         changeCount++;
       },
