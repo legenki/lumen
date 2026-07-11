@@ -23,7 +23,7 @@
 - Create: `src/shaders/{blurComp,blurNoise,displaceCubic,displaceSimplex,displaceSine,embossEffect,gradientMap,lensGrid,lumaBands,rgbShift,warpGrid}.frag` (копии) и `src/shaders/{maskMedia,blurGaussianDir,displaceTexture,colorCorrection}.frag` (из README §5)
 - Modify: `src/js/modules/uniformUtils.js` (+map, +EASE, +QUALITY_SCALE), `src/js/modules/uniformUtils.test.js`, `src/js/app.js` (blueNoise загрузка в env)
 
-- [ ] **Step 1: Копии 11 фрагов**
+- [x] **Step 1: Копии 11 фрагов**
 
 ```bash
 for f in blurComp blurNoise displaceCubic displaceSimplex displaceSine embossEffect gradientMap lensGrid lumaBands rgbShift warpGrid; do
@@ -33,9 +33,9 @@ done
 ```
 Expected: 11 × OK.
 
-- [ ] **Step 2: 4 инлайн-шейдера из README §5** — открыть `reference/filtr/shaders/README.md`, секции §5.1 maskMedia, §5.2 blurGaussian (директиональный блюр движка — у нас имя файла `blurGaussianDir.frag`, чтобы не путать с модулем), §5.3 displaceTexture, §5.4 colorCorrection; скопировать GLSL-блоки ДОСЛОВНО в соответствующие файлы `src/shaders/*.frag`. Проверка: каждый начинается `#version 300 es` и содержит `void main`; число строк сверить с README-блоком.
+- [x] **Step 2: 4 инлайн-шейдера из README §5** — открыть `reference/filtr/shaders/README.md`, секции §5.1 maskMedia, §5.2 blurGaussian (директиональный блюр движка — у нас имя файла `blurGaussianDir.frag`, чтобы не путать с модулем), §5.3 displaceTexture, §5.4 colorCorrection; скопировать GLSL-блоки ДОСЛОВНО в соответствующие файлы `src/shaders/*.frag`. Проверка: каждый начинается `#version 300 es` и содержит `void main`; число строк сверить с README-блоком.
 
-- [ ] **Step 3: TDD math-хелперы** — добавить в `src/js/modules/uniformUtils.test.js`:
+- [x] **Step 3: TDD math-хелперы** — добавить в `src/js/modules/uniformUtils.test.js`:
 
 ```js
 import { map, EASE, QUALITY_SCALE } from './uniformUtils.js';
@@ -85,11 +85,11 @@ export const EASE = {
 export const QUALITY_SCALE = [1, 1.5, 3, 5];
 ```
 
-- [ ] **Step 4: blueNoise в env** — в `src/js/app.js`: `import { BLUE_NOISE_URL } from './assets.js';`; в env добавить `textures: { blueNoise: null }`; в setup: `p.loadImage(BLUE_NOISE_URL, (img) => { env.textures.blueNoise = img; scheduler.requestRender(); }, () => console.warn('[lumen] blue-noise load failed'));`
+- [x] **Step 4: blueNoise в env** — в `src/js/app.js`: `import { BLUE_NOISE_URL } from './assets.js';`; в env добавить `textures: { blueNoise: null }`; в setup: `p.loadImage(BLUE_NOISE_URL, (img) => { env.textures.blueNoise = img; scheduler.requestRender(); }, () => console.warn('[lumen] blue-noise load failed'));`
 
-- [ ] **Step 5:** `npm test` (все PASS, +3 новых), `npm run lint`, `npm run build` → чисто.
+- [x] **Step 5:** `npm test` (все PASS, +3 новых), `npm run lint`, `npm run build` → чисто.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/shaders src/js/modules/uniformUtils.js src/js/modules/uniformUtils.test.js src/js/app.js
@@ -314,9 +314,9 @@ git commit -m "feat: pipeline v2 with fbo pool, mask stack and blur engine"
 - Create: `src/js/presets.js` (данные), `src/js/presetConvert.js` (+ test)
 - Modify: `src/js/main.js` (dev-хук)
 
-- [ ] **Step 1:** `src/js/presets.js` — копия массива PRESETS из `reference/filtr/presets.js` ДОСЛОВНО (шапка: `// LUMEN — встроенные пресеты (дословно из reference/filtr/presets.js, старый формат filtr-tool v2). Конвертация — presetConvert.js.`). Проверка: `node -e` сравнение JSON.stringify обоих массивов → identical.
+- [x] **Step 1:** `src/js/presets.js` — копия массива PRESETS из `reference/filtr/presets.js` ДОСЛОВНО (шапка: `// LUMEN — встроенные пресеты (дословно из reference/filtr/presets.js, старый формат filtr-tool v2). Конвертация — presetConvert.js.`). Проверка: `node -e` сравнение JSON.stringify обоих массивов → identical.
 
-- [ ] **Step 2: TDD конвертер** — `src/js/presetConvert.test.js`:
+- [x] **Step 2: TDD конвертер** — `src/js/presetConvert.test.js`:
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -433,7 +433,7 @@ function deepAssign(target, src) {
 }
 ```
 
-- [ ] **Step 3: dev-хук** — в main.js: `import { PRESETS } from './presets.js'; import { applyPresetToState } from './presetConvert.js';` и после создания state:
+- [x] **Step 3: dev-хук** — в main.js: `import { PRESETS } from './presets.js'; import { applyPresetToState } from './presetConvert.js';` и после создания state:
 
 ```js
 // dev-хук сверки с эталоном (UI пресетов — фаза 6)
@@ -451,7 +451,7 @@ window.__lumenApplyPreset = (name) => {
 ```
 (buildUI очищает и перестраивает левую панель — проверь, что повторный вызов не дублирует слушатели: root.innerHTML='' в начале уже есть; PNG-кнопка вне root — при повторном вызове addEventListener дублируется! Оберни навешивание PNG-слушателя защитой: `btn.onclick = () => applyChange(...)` вместо addEventListener — правь при необходимости и отметь в отчёте.)
 
-- [ ] **Step 4:** test/lint/build. Commit `feat: built-in preset data, converter and dev apply hook`.
+- [x] **Step 4:** test/lint/build. Commit `feat: built-in preset data, converter and dev apply hook`.
 
 ---
 
@@ -459,13 +459,13 @@ window.__lumenApplyPreset = (name) => {
 
 Проверяет контроллер:
 
-- [ ] Каждый из 15 новых модулей добавляется из Layers и заметно влияет на рендер (стек: fillMedia(img0) + модуль); инспектор каждого рендерит все контролы без ошибок консоли.
-- [ ] blurGaussian: radius 50 даёт мягкий блюр; blurMotion — направленный; blurNoise — зернистый (blueNoise загружен).
-- [ ] embossEffect/lensGrid — рельеф/линза поверх fillMedia; warpGrid — сетка искажения.
-- [ ] MASK: стек fillMedia → maskMedia(gradient-linear) → colorCorrection(saturation 0) c member=colorCorrection: обесцвечивание только там, где маска белая; без члена (maskMembers пуст) — colorCorrection действует на весь кадр; LayerList показывает бейдж 1 и отступ «↳» у члена.
-- [ ] Пресеты: `__lumenApplyPreset('Gradient Plating')` и ещё 2 пресета без видео-медиа — рендер Lumen против эталона (reference/filtr/live, тот же пресет выбрать в Preset List) — композиция/характер/палитра совпадают (сиды/кадр могут отличаться); расхождения фиксируются с указанием модуля.
-- [ ] Persistence: пресет-стек с maskMembers переживает reload.
-- [ ] lint/test/build чистые; сверка defaults 19/19; чекбоксы плана.
+- [x] Каждый из 15 новых модулей добавляется из Layers и заметно влияет на рендер (стек: fillMedia(img0) + модуль); инспектор каждого рендерит все контролы без ошибок консоли.
+- [x] blurGaussian: radius 50 даёт мягкий блюр; blurMotion — направленный; blurNoise — зернистый (blueNoise загружен).
+- [x] embossEffect/lensGrid — рельеф/линза поверх fillMedia; warpGrid — сетка искажения.
+- [x] MASK: стек fillMedia → maskMedia(gradient-linear) → colorCorrection(saturation 0) c member=colorCorrection: обесцвечивание только там, где маска белая; без члена (maskMembers пуст) — colorCorrection действует на весь кадр; LayerList показывает бейдж 1 и отступ «↳» у члена.
+- [x] Пресеты: `__lumenApplyPreset('Gradient Plating')` и ещё 2 пресета без видео-медиа — рендер Lumen против эталона (reference/filtr/live, тот же пресет выбрать в Preset List) — композиция/характер/палитра совпадают (сиды/кадр могут отличаться); расхождения фиксируются с указанием модуля.
+- [x] Persistence: пресет-стек с maskMembers переживает reload.
+- [x] lint/test/build чистые; сверка defaults 19/19; чекбоксы плана.
 
 ## Definition of Done (фаза 5)
 Все пункты Task 9 зелёные; 19 модулей в реестре; тестов ≥ 120; известные упрощения зафиксированы в плане (drag-в-группу — фаза 6; UI пресетов — фаза 6).
