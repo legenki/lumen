@@ -175,7 +175,7 @@ export const embossEffect = {
     target.begin();
     ctx.glc.clear();
     const shader = ctx.shaders.embossEffect;
-    ctx.p.shader(shader);
+    ctx.glc.shader(shader);
     shader.setUniform('u_src', inputTex);
     shader.setUniform('u_heightTex', heightTex);
     shader.setUniform('u_heightUseTex', true);
@@ -197,7 +197,7 @@ export const embossEffect = {
     shader.setUniform('u_shadowColor', hexToRgb(p.shadColor, scratch3Shad));
     shader.setUniform('u_shadowBlendMode', p.shadMode);
     shader.setUniform('u_shadowOpacity', p.shadOpacity);
-    ctx.p.rect(-w / 2, -h / 2, w, h);
+    ctx.glc.rect(-w / 2, -h / 2, w, h);
     target.end();
 
     return target.color;

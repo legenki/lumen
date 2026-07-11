@@ -119,7 +119,7 @@ export const lensGrid = {
     target.begin();
     ctx.glc.clear();
     const shader = ctx.shaders.lensGrid;
-    ctx.p.shader(shader);
+    ctx.glc.shader(shader);
     shader.setUniform('u_src', inputTex); // NOT blurred!
     shader.setUniform('u_aspect', w / h);
     shader.setUniform('u_maskUse', !!maskTex);
@@ -146,7 +146,7 @@ export const lensGrid = {
     shader.setUniform('u_shadowAmount', p.shadowAmount);
     shader.setUniform('u_shadowPower', p.shadowPower * 5);
     shader.setUniform('u_wrapMode', p.wrapMode);
-    ctx.p.rect(-w / 2, -h / 2, w, h);
+    ctx.glc.rect(-w / 2, -h / 2, w, h);
     target.end();
 
     return target.color;
