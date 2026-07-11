@@ -40,7 +40,6 @@ export const blurMotion = {
       max: 1,
       step: 0.01,
     },
-    { type: 'separator' },
     {
       type: 'slider',
       path: 'radius',

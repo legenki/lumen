@@ -50,7 +50,6 @@ export const blurNoise = {
       max: 1,
       step: 0.01,
     },
-    { type: 'separator' },
     {
       type: 'slider',
       path: 'radius',
@@ -59,7 +58,6 @@ export const blurNoise = {
       max: 50,
       step: 0.1,
     },
-    { type: 'separator' },
     {
       type: 'slider',
       path: 'samples',

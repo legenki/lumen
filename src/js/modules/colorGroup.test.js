@@ -173,7 +173,6 @@ describe('module control schemas (color group)', () => {
   it('every control has a path (no separators leak into schemas)', () => {
     for (const def of Object.values(MODULES)) {
       for (const c of def.controls) {
-        if (c.type === 'separator') continue; // separators have no path
         expect(typeof c.path, `${def.key}: control without path (${c.type})`).toBe('string');
       }
     }

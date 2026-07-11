@@ -1,13 +1,13 @@
 // Транскрипция пасса blurGaussian (bundle-pretty.js:47150-47166).
 // Модуль с run()-хуком: вызывает ctx.blur.gaussian с рассчитанной sigma.
-import { map, EASE, QUALITY_SCALE } from './uniformUtils.js';
+import { map, EASE } from './uniformUtils.js';
 
 export function gaussianSigma(p) {
-  // sigma = map(EASE.quadIn(p.radius/100), 0,1, 0, 0.1×QUALITY_SCALE[p.quality])
-  // quality defaults to 0 if undefined (matches p4(i=0) in bundle)
-  const quality = Math.max(0, Math.min(3, p.quality ?? 0));
-  const maxSigma = 0.1 * QUALITY_SCALE[quality];
-  return map(EASE.quadIn(p.radius / 100), 0, 1, 0, maxSigma);
+  // sigma = map(EASE.quadIn(p.radius/100), 0,1, 0, 0.1)
+  // Бандл читает p.quality, которого нет ни в дефолтах, ни в контролах
+  // reference/filtr/modules.js → всегда p4(undefined)=0 → QUALITY_SCALE[0]=1.
+  // Захардкожено, как maxSigma=0.2 у blurMotion.
+  return map(EASE.quadIn(p.radius / 100), 0, 1, 0, 0.1);
 }
 
 export const blurGaussian = {
@@ -19,7 +19,6 @@ export const blurGaussian = {
     blendMode: 0,
     radius: 15,
     aspect: 0,
-    quality: 0,
   },
   controls: [
     {
@@ -44,7 +43,6 @@ export const blurGaussian = {
       max: 1,
       step: 0.01,
     },
-    { type: 'separator' },
     {
       type: 'slider',
       path: 'radius',

@@ -24,19 +24,18 @@ describe('blurGaussian.run() — sigma calculation (bundle 47150-47166)', () => 
     expect(typeof sigmaFunc).toBe('function');
   });
 
-  it('radius 50, quality 2 → quadIn(0.5)=0.25 → map(0.25, 0, 1, 0, 0.3)=0.075', () => {
-    const p = { ...MODULES.blurGaussian.defaults, radius: 50, quality: 2 };
+  it('radius 50 → quadIn(0.5)=0.25 → map(0.25, 0, 1, 0, 0.1)=0.025', () => {
+    const p = { ...MODULES.blurGaussian.defaults, radius: 50 };
     const sigma = MODULES.blurGaussian.gaussianSigma(p);
-    // quality 2 → QUALITY_SCALE[2] = 3
     // quadIn(50/100) = quadIn(0.5) = 0.25
-    // map(0.25, 0, 1, 0, 0.1*3) = map(0.25, 0, 1, 0, 0.3) = 0.075
-    expect(sigma).toBeCloseTo(0.075, 10);
+    // map(0.25, 0, 1, 0, 0.1) = 0.025
+    expect(sigma).toBeCloseTo(0.025, 10);
   });
 
-  it('radius 100, quality 2 → quadIn(1)=1 → map(1, 0, 1, 0, 0.3)=0.3', () => {
-    const p = { ...MODULES.blurGaussian.defaults, radius: 100, quality: 2 };
+  it('radius 100 → quadIn(1)=1 → map(1, 0, 1, 0, 0.1)=0.1', () => {
+    const p = { ...MODULES.blurGaussian.defaults, radius: 100 };
     const sigma = MODULES.blurGaussian.gaussianSigma(p);
-    expect(sigma).toBeCloseTo(0.3, 10);
+    expect(sigma).toBeCloseTo(0.1, 10);
   });
 
   it('radius 0 → sigma 0', () => {
@@ -45,24 +44,13 @@ describe('blurGaussian.run() — sigma calculation (bundle 47150-47166)', () => 
     expect(sigma).toBeCloseTo(0, 10);
   });
 
-  it('quality parameter affects maximum sigma (0→1x, 3→5x)', () => {
-    const pQ0 = { ...MODULES.blurGaussian.defaults, radius: 100, quality: 0 };
-    const pQ3 = { ...MODULES.blurGaussian.defaults, radius: 100, quality: 3 };
-    const sigmaQ0 = MODULES.blurGaussian.gaussianSigma(pQ0);
-    const sigmaQ3 = MODULES.blurGaussian.gaussianSigma(pQ3);
-    // quality 0 → QUALITY_SCALE[0] = 1 → max 0.1
-    // quality 3 → QUALITY_SCALE[3] = 5 → max 0.5
-    expect(sigmaQ0).toBeCloseTo(0.1, 10);
-    expect(sigmaQ3).toBeCloseTo(0.5, 10);
-  });
-
-  it('has defaults: mix=1, blendMode=0, radius=15, aspect=0, quality=0 (hidden)', () => {
+  it('has defaults: mix=1, blendMode=0, radius=15, aspect=0', () => {
     const defs = MODULES.blurGaussian.defaults;
     expect(defs.mix).toBe(1);
     expect(defs.blendMode).toBe(0);
     expect(defs.radius).toBe(15);
     expect(defs.aspect).toBe(0);
-    expect(defs.quality).toBe(0); // hidden parameter, defaults to 0
+    expect(defs.quality).toBeUndefined(); // no such param in reference defaults
   });
 });
 

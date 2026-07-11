@@ -268,7 +268,7 @@ git commit -m "feat: pipeline v2 with fbo pool, mask stack and blur engine"
 
 **blurNoise** (47182-47197) — обычный uniforms() + guard в run? Нет: нужна текстура blueNoise (env.textures.blueNoise; не загружена → пасс прозрачен) ⇒ `run()`-хук с дефолтной схемой пасса. Uniform'ы: u_noise env.textures.blueNoise; u_mix; u_blendMode; u_resolution [w,h]; u_radius p.radius × env.scaleValue; u_noiseIndependence 0.15; u_noiseScale map(EASE.quadIn(p.scale), 0,1, 0.01,5); u_samples p.samples.
 
-- [ ] Шаги TDD (числовые проверки формул сигм: radius 50, quality 2 → sigma = 0.25²=0.0625→map→0.0625×0.3=0.01875; motion radius 100 → sineIn(1)=1→0.2), реализация, defaults-сверка (15 OK), commit `feat: blur group modules on blur engine`.
+- [x] Шаги TDD (числовые проверки формул сигм: radius 50 → quadIn(0.5)=0.25→map(0,1,0,0.1)=0.025; radius 100 → sigma=0.1; motion radius 100 → sineIn(1)=1→0.2), реализация, defaults-сверка (15 OK), commit `feat: blur group modules on blur engine`.
 
 ---
 
