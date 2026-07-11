@@ -2148,3 +2148,69 @@ body.theme-dark .auth-capsule {
 }
 .lumen-canvas-viewport canvas { width: 100vw !important; height: 100vh !important; }
 
+
+/* ============ LayerList (stack tools) ============ */
+.layer-list { list-style: none; margin: 0; padding: 0; }
+.layer-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 8px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; user-select: none;
+  border-left: 2px solid transparent;
+}
+.layer-row:hover { background: rgba(0, 0, 0, 0.05); }
+.layer-row.is-selected { background: rgba(0, 0, 0, 0.08); }
+.layer-row.is-disabled .layer-label { opacity: 0.4; }
+.layer-row.is-mask, .layer-row.is-mask-affected { border-left-color: #a78bfa; }
+.layer-row.is-mask-affected { padding-left: 20px; }
+.layer-indent { opacity: 0.5; margin-right: 2px; }
+.layer-handle { cursor: grab; opacity: 0.35; display: inline-flex; }
+.layer-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.layer-badge {
+  background: #a78bfa; color: #fff; border-radius: 8px;
+  font-size: 10px; padding: 1px 6px;
+}
+.layer-actions { display: none; gap: 2px; }
+.layer-row:hover .layer-actions { display: inline-flex; }
+.layer-act {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  opacity: 0.55; display: inline-flex; color: inherit;
+}
+.layer-act:hover { opacity: 1; }
+.layer-row.is-dragging { opacity: 0.4; }
+.layer-row.is-drop-target { box-shadow: inset 0 2px 0 0 #a78bfa; }
+
+/* ============ CenterPoint 2D pad ============ */
+.center-point-body { display: flex; gap: 10px; align-items: flex-start; }
+.center-point-pad {
+  position: relative; width: 84px; height: 84px; flex: none;
+  border-radius: 8px; background: rgba(0, 0, 0, 0.06);
+  background-image: linear-gradient(rgba(0,0,0,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.08) 1px, transparent 1px);
+  background-size: 21px 21px; background-position: center;
+  cursor: crosshair; touch-action: none;
+}
+.center-point-knob {
+  position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; border: 2px solid #555;
+  transform: translate(-50%, -50%); pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+.center-point-nums { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+/* ============ GradientMapper ============ */
+.gradient-strip {
+  height: 18px; border-radius: 5px; cursor: copy;
+  border: 1px solid rgba(0, 0, 0, 0.12); touch-action: none;
+}
+.gradient-markers { position: relative; height: 14px; margin-top: 2px; }
+.gradient-marker {
+  position: absolute; top: 0; width: 10px; height: 12px;
+  transform: translateX(-50%); cursor: ew-resize;
+  border: 2px solid #555; border-radius: 3px;
+}
+.gradient-marker.is-selected { border-color: #000; box-shadow: 0 0 0 2px rgba(0,0,0,.15); }
+.gradient-editor { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.gradient-editor input[type="color"] { width: 34px; height: 24px; flex: none; }
+.gradient-editor input[type="range"] { flex: 1; }
+.gradient-editor input[type="number"] { width: 58px; flex: none; }
+.gradient-remove { flex: none; padding: 2px 8px; }

@@ -21,6 +21,18 @@ export function setByPath(root, path, value) {
   obj[last] = value;
 }
 
+/**
+ * Escapes a value for safe interpolation into innerHTML. Font/preset labels can
+ * originate from user-supplied filenames restored from storage, so any string
+ * reaching innerHTML must pass through here.
+ */
+export function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
+}
+
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
