@@ -43,7 +43,7 @@ export function duplicateModule(state, id) {
   const src = state.stack[i];
   const inst = {
     ...structuredClone(src),
-    id: createModuleInstance(src.module, state.stack.map((m) => m.id)).id,
+    id: nextId(state.stack.map((m) => m.id)),
   };
   state.stack.splice(i + 1, 0, inst);
   return inst;

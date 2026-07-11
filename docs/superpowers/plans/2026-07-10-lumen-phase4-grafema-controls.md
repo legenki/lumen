@@ -23,7 +23,7 @@
 - Test: `src/shared/ui/__tests__/layerList.test.js`
 - Modify: `src/css/style.css` (блок в конец)
 
-- [ ] **Step 1: Тест** (`src/shared/ui/__tests__/layerList.test.js`):
+- [x] **Step 1: Тест** (`src/shared/ui/__tests__/layerList.test.js`):
 
 ```js
 // @vitest-environment jsdom
@@ -108,9 +108,9 @@ describe('createLayerList', () => {
 });
 ```
 
-- [ ] **Step 2: Падает** — в grafema: `npm test -- layerList` → FAIL (модуля нет).
+- [x] **Step 2: Падает** — в grafema: `npm test -- layerList` → FAIL (модуля нет).
 
-- [ ] **Step 3: Реализация** `src/shared/ui/layerList.js`:
+- [x] **Step 3: Реализация** `src/shared/ui/layerList.js`:
 
 ```js
 // layerList.js — список слоёв-модулей стека (Lumen и будущие стековые
@@ -196,7 +196,7 @@ export function createLayerList({ container, getLayers, getSelectedId, callbacks
 }
 ```
 
-- [ ] **Step 4: CSS** — дописать в конец `/Users/andy/Documents/GitHub/grafema/src/css/style.css`:
+- [x] **Step 4: CSS** — дописать в конец `/Users/andy/Documents/GitHub/grafema/src/css/style.css`:
 
 ```css
 /* ============ LayerList (stack tools) ============ */
@@ -230,9 +230,9 @@ export function createLayerList({ container, getLayers, getSelectedId, callbacks
 .layer-row.is-drop-target { box-shadow: inset 0 2px 0 0 #a78bfa; }
 ```
 
-- [ ] **Step 5: Прогнать** — в grafema: `npm test -- layerList` → PASS; `npm run lint` (если ругается на чужие незакоммиченные файлы vertice — прогнать только на своём: `npx eslint src/shared/ui/layerList.js src/shared/ui/__tests__/layerList.test.js`).
+- [x] **Step 5: Прогнать** — в grafema: `npm test -- layerList` → PASS; `npm run lint` (если ругается на чужие незакоммиченные файлы vertice — прогнать только на своём: `npx eslint src/shared/ui/layerList.js src/shared/ui/__tests__/layerList.test.js`).
 
-- [ ] **Step 6: Commit (в grafema; стейджить ТОЛЬКО свои файлы)**
+- [x] **Step 6: Commit (в grafema; стейджить ТОЛЬКО свои файлы)**
 
 ```bash
 cd /Users/andy/Documents/GitHub/grafema
@@ -249,7 +249,7 @@ git commit -m "feat(shared): LayerList component for stack-based tools (Lumen)"
 - Test: `src/shared/ui/__tests__/centerPoint.test.js`
 - Modify: `src/css/style.css` (блок в конец)
 
-- [ ] **Step 1: Тест** (`src/shared/ui/__tests__/centerPoint.test.js`):
+- [x] **Step 1: Тест** (`src/shared/ui/__tests__/centerPoint.test.js`):
 
 ```js
 // @vitest-environment jsdom
@@ -307,9 +307,9 @@ describe('createCenterPoint', () => {
 });
 ```
 
-- [ ] **Step 2: Падает** — `npm test -- centerPoint` → FAIL.
+- [x] **Step 2: Падает** — `npm test -- centerPoint` → FAIL.
 
-- [ ] **Step 3: Реализация** `src/shared/ui/centerPoint.js`:
+- [x] **Step 3: Реализация** `src/shared/ui/centerPoint.js`:
 
 ```js
 // centerPoint.js — 2D-джойстик для парных параметров {x, y} (Center Point,
@@ -390,7 +390,7 @@ export function createCenterPoint({ container, label, axes, getValue, onChange }
 }
 ```
 
-- [ ] **Step 4: CSS** (в конец grafema style.css):
+- [x] **Step 4: CSS** (в конец grafema style.css):
 
 ```css
 /* ============ CenterPoint 2D pad ============ */
@@ -412,9 +412,9 @@ export function createCenterPoint({ container, label, axes, getValue, onChange }
 .center-point-nums { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 ```
 
-- [ ] **Step 5: Прогнать** — `npm test -- centerPoint` → PASS; точечный eslint на своих файлах.
+- [x] **Step 5: Прогнать** — `npm test -- centerPoint` → PASS; точечный eslint на своих файлах.
 
-- [ ] **Step 6: Commit (grafema, только свои файлы)**
+- [x] **Step 6: Commit (grafema, только свои файлы)**
 
 ```bash
 cd /Users/andy/Documents/GitHub/grafema
@@ -431,7 +431,7 @@ git commit -m "feat(shared): CenterPoint 2D pad control"
 - Test: `src/shared/ui/__tests__/gradientModel.test.js`, `src/shared/ui/__tests__/gradientMapper.test.js`
 - Modify: `src/css/style.css`
 
-- [ ] **Step 1: Тест модели** (`src/shared/ui/__tests__/gradientModel.test.js`):
+- [x] **Step 1: Тест модели** (`src/shared/ui/__tests__/gradientModel.test.js`):
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -501,7 +501,7 @@ describe('gradient model', () => {
 });
 ```
 
-- [ ] **Step 2: Реализация модели** `src/shared/ui/gradientModel.js`:
+- [x] **Step 2: Реализация модели** `src/shared/ui/gradientModel.js`:
 
 ```js
 // gradientModel.js — чистая модель мультистопового градиента.
@@ -574,7 +574,7 @@ export function stopsToCss(stops) {
 }
 ```
 
-- [ ] **Step 3: Тест DOM-компонента** (`src/shared/ui/__tests__/gradientMapper.test.js`):
+- [x] **Step 3: Тест DOM-компонента** (`src/shared/ui/__tests__/gradientMapper.test.js`):
 
 ```js
 // @vitest-environment jsdom
@@ -642,7 +642,7 @@ describe('createGradientMapper', () => {
 });
 ```
 
-- [ ] **Step 4: Реализация** `src/shared/ui/gradientMapper.js`:
+- [x] **Step 4: Реализация** `src/shared/ui/gradientMapper.js`:
 
 ```js
 // gradientMapper.js — многостоповый редактор градиента (Fill: Gradient,
@@ -773,7 +773,7 @@ export function createGradientMapper({ container, label, getStops, onChange }) {
 }
 ```
 
-- [ ] **Step 5: CSS** (в конец grafema style.css):
+- [x] **Step 5: CSS** (в конец grafema style.css):
 
 ```css
 /* ============ GradientMapper ============ */
@@ -795,9 +795,9 @@ export function createGradientMapper({ container, label, getStops, onChange }) {
 .gradient-remove { flex: none; padding: 2px 8px; }
 ```
 
-- [ ] **Step 6: Прогнать** — `npm test -- gradient` → PASS (обе сюиты); точечный eslint.
+- [x] **Step 6: Прогнать** — `npm test -- gradient` → PASS (обе сюиты); точечный eslint.
 
-- [ ] **Step 7: Commit (grafema, только свои файлы)**
+- [x] **Step 7: Commit (grafema, только свои файлы)**
 
 ```bash
 cd /Users/andy/Documents/GitHub/grafema
@@ -813,7 +813,7 @@ git commit -m "feat(shared): GradientMapper multi-stop editor with pure model"
 - Create: `src/shared/ui/layerList.js`, `src/shared/ui/centerPoint.js`, `src/shared/ui/gradientMapper.js`, `src/shared/ui/gradientModel.js` (+ их тесты в `src/shared/utils/`-стиле lumen: тесты кладём рядом с исходником, `src/shared/ui/*.test.js`)
 - Modify: `src/css/style.css` (3 CSS-блока в конец)
 
-- [ ] **Step 1: Копирование**
+- [x] **Step 1: Копирование**
 
 ```bash
 cd /Users/andy/Documents/GitHub/lumen
@@ -830,11 +830,11 @@ done
 
 ВНИМАНИЕ: lumen'овский panelBuilder (копия divix) может НЕ экспортировать `escapeHtml`, который импортирует layerList.js. Проверить `grep -n escapeHtml src/shared/ui/panelBuilder.js`; если нет — скопировать функцию `escapeHtml` из grafema panelBuilder в lumen panelBuilder (добавить export, БЕЗ других изменений) и отметить в отчёте.
 
-- [ ] **Step 2: CSS** — дописать в конец lumen `src/css/style.css` все три блока из Tasks 1/2/3 дословно (LayerList, CenterPoint, GradientMapper).
+- [x] **Step 2: CSS** — дописать в конец lumen `src/css/style.css` все три блока из Tasks 1/2/3 дословно (LayerList, CenterPoint, GradientMapper).
 
-- [ ] **Step 3: Прогнать** — `npm test` (новые тесты подхватятся: +4 файла) и `npm run lint` → чисто.
+- [x] **Step 3: Прогнать** — `npm test` (новые тесты подхватятся: +4 файла) и `npm run lint` → чисто.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/shared/ui src/css/style.css
@@ -852,7 +852,7 @@ git commit -m "feat: vendor LayerList, CenterPoint and GradientMapper from grafe
 
 Схемы — дословная транскрипция panels из `reference/filtr/modules.js` (тип `number`→`slider`, `bool`→`check`; `separator` опускаем; `interval` → ДВА слайдера `threshold.min`/`threshold.max`; `media` → `select` c опциями из имён DEFAULT_MEDIA; `point2d` → `centerPoint` с осями из reference; `gradient` → `gradientMapper`).
 
-- [ ] **Step 1: Тесты** — добавить в `src/js/modules/fills.test.js`:
+- [x] **Step 1: Тесты** — добавить в `src/js/modules/fills.test.js`:
 
 ```js
 import { getByPath } from '../../shared/ui/panelBuilder.js';
@@ -905,11 +905,11 @@ describe('module control schemas', () => {
 
 (Ожидание `getByPath(defaults, 'gradCenter')` для centerPoint-контрола: path указывает на объект `{x, y}` — не undefined, тест валиден. То же `position`, `gradient`.)
 
-- [ ] **Step 2: Падают** — `npm test -- fills` → FAIL.
+- [x] **Step 2: Падают** — `npm test -- fills` → FAIL.
 
-- [ ] **Step 3: `src/js/modules/optionTables.js`** — дословно из reference/filtr/modules.js (BLEND_MODES 26 записей Normal:0…Luminosity:25 — скопировать оттуда полностью; WRAP_MODES/ALPHA_MODES/GRADIENT_MODES как в тесте выше). Шапка-комментарий со ссылкой на reference.
+- [x] **Step 3: `src/js/modules/optionTables.js`** — дословно из reference/filtr/modules.js (BLEND_MODES 26 записей Normal:0…Luminosity:25 — скопировать оттуда полностью; WRAP_MODES/ALPHA_MODES/GRADIENT_MODES как в тесте выше). Шапка-комментарий со ссылкой на reference.
 
-- [ ] **Step 4: Схемы `controls` в модулях.** Каждому модулю добавить поле `controls` (массив). Общие первые два контрола у всех:
+- [x] **Step 4: Схемы `controls` в модулях.** Каждому модулю добавить поле `controls` (массив). Общие первые два контрола у всех:
 
 ```js
     { type: 'select', path: 'blendMode', label: 'Blending Mode', options: BLEND_MODES },
@@ -924,9 +924,9 @@ describe('module control schemas', () => {
 
 `fillNoise` дальше: slider threshold.min 0..1 step 0.01 label 'Luma Threshold Min'; slider threshold.max 0..1 step 0.01 label 'Luma Threshold Max'; slider contrast 0.5..5 step 0.01 label 'Grain Contrast'; check colorNoise label 'Color Noise'; slider size 1..10 step 0.1 label 'Grain Size'; select alphaMode; slider fps 0..60 step 1 label 'Animation (FPS)'.
 
-- [ ] **Step 5: Прогнать** — `npm test` → PASS все; `npm run lint`; сверка дефолтов из фазы 3 (`node`-скрипт сравнения) по-прежнему 4 × OK (controls её не трогает).
+- [x] **Step 5: Прогнать** — `npm test` → PASS все; `npm run lint`; сверка дефолтов из фазы 3 (`node`-скрипт сравнения) по-прежнему 4 × OK (controls её не трогает).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js/modules
@@ -941,7 +941,7 @@ git commit -m "feat: module control schemas and option tables from reference"
 - Create: `src/js/inspector.js`, `src/js/layersPanel.js`
 - Modify: `src/js/main.js`, `src/js/controls.js`, `src/js/stack.js` (+ `src/js/stack.test.js`), `src/js/state.js` (убрать ui.devModule)
 
-- [ ] **Step 1: TDD duplicateModule/moveModule** — добавить в `src/js/stack.test.js`:
+- [x] **Step 1: TDD duplicateModule/moveModule** — добавить в `src/js/stack.test.js`:
 
 ```js
 import { duplicateModule, moveModule } from './stack.js';
@@ -994,7 +994,7 @@ export function moveModule(state, fromIndex, toIndex) {
 }
 ```
 
-- [ ] **Step 2: `src/js/layersPanel.js`** — секция Layers для левой панели:
+- [x] **Step 2: `src/js/layersPanel.js`** — секция Layers для левой панели:
 
 ```js
 // LUMEN — секция Layers: Module List + Add To Stack + LayerList (спека §4).
@@ -1091,7 +1091,7 @@ export function buildLayersSection(root, { state, onStackChange, onSelect }) {
 }
 ```
 
-- [ ] **Step 3: `src/js/inspector.js`** — инспектор выбранного слоя:
+- [x] **Step 3: `src/js/inspector.js`** — инспектор выбранного слоя:
 
 ```js
 // LUMEN — инспектор выбранного слоя (правая панель, спека §4): на каждое
@@ -1175,7 +1175,7 @@ export function renderInspector(root, { state, onParamChange }) {
 
 (panelBuilder.buildControl ожидает `ctrl.id` и `ctrl.path` — они переданы; slider/check/select/color уже реализованы.)
 
-- [ ] **Step 4: Перепаять `src/js/main.js`:**
+- [x] **Step 4: Перепаять `src/js/main.js`:**
 - удалить импорт addModule и ветки lm-stack-add/lm-stack-clear из applyChange (Canvas-ветки buffer/animation остаются);
 - удалить из `src/js/controls.js` секцию 'Stack (dev)' целиком; из `src/js/state.js` — поле `ui.devModule`;
 - в buildUI после `panel.buildSections(root, LEFT_SECTIONS)`:
@@ -1202,9 +1202,9 @@ export function renderInspector(root, { state, onParamChange }) {
 - при старте после loadState: вызвать `onSelect()`-эквивалент один раз (отрисовать пустой инспектор), объявить `let layersPanel = null;` на уровне модуля;
 - импорты: `import { buildLayersSection } from './layersPanel.js'; import { renderInspector } from './inspector.js';`.
 
-- [ ] **Step 5: Прогнать** — `npm run lint && npm test && npm run build` → чисто; dev-сервер `npm run dev -- --port 3211 --strictPort` (3000/3210 могут быть заняты) → curl 200 → убить. Поведение в браузере проверяет контроллер.
+- [x] **Step 5: Прогнать** — `npm run lint && npm test && npm run build` → чисто; dev-сервер `npm run dev -- --port 3211 --strictPort` (3000/3210 могут быть заняты) → curl 200 → убить. Поведение в браузере проверяет контроллер.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/js
@@ -1217,16 +1217,16 @@ git commit -m "feat: Layers panel with LayerList and per-layer inspector"
 
 Проверяется контроллером после Task 6 (не субагентом):
 
-- [ ] Layers: Add To Stack добавляет слой и выделяет его; инспектор справа показывает схему модуля.
-- [ ] Слайдер mix, select blendMode, color — меняют рендер мгновенно.
-- [ ] CenterPoint у fillGradient двигает центр градиента (направление осей сверить с эталоном: gradCenter y=+0.3 в эталоне и в Lumen смещают центр в одну сторону).
-- [ ] GradientMapper: dblclick добавляет стоп, цвет стопа меняет градиент, remove не даёт < 2 стопов.
-- [ ] Глаз выключает слой (рендер без него), дубль копирует с параметрами, корзина удаляет, drag-reorder меняет порядок пассов (виден в рендере).
-- [ ] showIf: gradScale скрывается при gradMode=Angular (2).
-- [ ] Persistence: стек+параметры живут после reload; выделение сбрасывается (ui не сериализуется) — это норм.
-- [ ] fillNoise threshold-слайдеры и fps работают.
-- [ ] `npm run lint && npm test && npm run build` в lumen; `npm test` в grafema.
-- [ ] Чекбоксы плана отмечает контроллер.
+- [x] Layers: Add To Stack добавляет слой и выделяет его; инспектор справа показывает схему модуля.
+- [x] Слайдер mix, select blendMode, color — меняют рендер мгновенно.
+- [x] CenterPoint у fillGradient двигает центр градиента (направление осей сверить с эталоном: gradCenter y=+0.3 в эталоне и в Lumen смещают центр в одну сторону).
+- [x] GradientMapper: dblclick добавляет стоп, цвет стопа меняет градиент, remove не даёт < 2 стопов.
+- [x] Глаз выключает слой (рендер без него), дубль копирует с параметрами, корзина удаляет, drag-reorder меняет порядок пассов (виден в рендере).
+- [x] showIf: gradScale скрывается при gradMode=Angular (2).
+- [x] Persistence: стек+параметры живут после reload; выделение сбрасывается (ui не сериализуется) — это норм.
+- [x] fillNoise threshold-слайдеры и fps работают.
+- [x] `npm run lint && npm test && npm run build` в lumen; `npm test` в grafema.
+- [x] Чекбоксы плана отмечает контроллер.
 
 ## Definition of Done (фаза 4)
 Всё из Task 7 зелёное; grafema-компоненты закоммичены в grafema (3 коммита, чужие vertice-правки не тронуты); dev-секция и ui.devModule удалены; тестов в lumen ≥ 70.

@@ -24,7 +24,6 @@ export function renderInspector(root, { state, onParamChange }) {
   const content = sec.querySelector('.section-content');
   root.appendChild(sec);
 
-  const custom = []; // refresh-ссылки кастом-контролов
   const controlId = (c) => `lm-ins-${inst.id}-${c.path.replace(/\./g, '-')}`;
 
   function refreshVisibility() {
@@ -58,7 +57,6 @@ export function renderInspector(root, { state, onParamChange }) {
         },
       });
       cp.refresh();
-      custom.push(cp);
     } else if (c.type === 'gradientMapper') {
       const gm = createGradientMapper({
         container: content,
@@ -67,7 +65,6 @@ export function renderInspector(root, { state, onParamChange }) {
         onChange: () => onParamChange(),
       });
       gm.refresh();
-      custom.push(gm);
     } else {
       const row = panel.buildControl({ ...c, id: controlId(c) });
       content.appendChild(row);
