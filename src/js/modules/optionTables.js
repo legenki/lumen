@@ -48,3 +48,9 @@ export const GRADIENT_MODES = {
   Box: 3,
   Triangle: 4,
 };
+
+export const RGB_SHIFT_MODES = {
+  Directional: 0,
+  Center: 1,
+  Edges: 2,
+};

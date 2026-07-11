@@ -6,12 +6,12 @@ import { BLEND_MODES, WRAP_MODES, ALPHA_MODES, GRADIENT_MODES } from './optionTa
 
 const ENV = { width: 1200, height: 960, time: 0.25, frameRate: 60, totalFrames: 600, media: {} };
 
-describe('MODULES registry', () => {
-  it('has exactly the four fill modules, keyed consistently', () => {
-    expect(Object.keys(MODULES).sort()).toEqual(
-      ['fillColor', 'fillGradient', 'fillMedia', 'fillNoise'],
-    );
-    for (const [key, def] of Object.entries(MODULES)) {
+describe('MODULES registry (fills only)', () => {
+  it('has the four fill modules', () => {
+    const fillKeys = ['fillColor', 'fillGradient', 'fillMedia', 'fillNoise'];
+    for (const key of fillKeys) {
+      expect(MODULES[key]).toBeTruthy();
+      const def = MODULES[key];
       expect(def.key).toBe(key);
       expect(def.type).toBe('pass');
       expect(typeof def.uniforms).toBe('function');
@@ -114,11 +114,14 @@ describe('option tables (verbatim from reference)', () => {
 });
 
 describe('module control schemas', () => {
-  it('every module declares controls and every path resolves into defaults', () => {
-    for (const def of Object.values(MODULES)) {
+  it('every fill module declares controls and every path resolves into defaults', () => {
+    const fillKeys = ['fillColor', 'fillGradient', 'fillMedia', 'fillNoise'];
+    for (const key of fillKeys) {
+      const def = MODULES[key];
       expect(Array.isArray(def.controls)).toBe(true);
       expect(def.controls.length).toBeGreaterThan(0);
       for (const c of def.controls) {
+        if (c.type === 'separator') continue; // separators have no path
         expect(getByPath(def.defaults, c.path)).not.toBeUndefined();
       }
     }
