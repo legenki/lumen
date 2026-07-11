@@ -30,3 +30,31 @@ describe('createMediaRegistry', () => {
     expect(reg.get('nope')).toBeUndefined();
   });
 });
+
+describe('add / remove', () => {
+  it('add() inserts a user entry with generated key and marks it ready synchronously', () => {
+    const reg = createMediaRegistry({}, fakeLoader());
+    const entry = reg.add({ url: 'blob:user-a', name: 'Photo.png', width: 640, height: 400 });
+    expect(entry.key).toMatch(/^user_/);
+    expect(entry.ready).toBe(true);
+    expect(entry.name).toBe('Photo.png');
+    expect(entry.res).toEqual([640, 400]);
+    expect(reg.get(entry.key)).toBe(entry);
+  });
+  it('remove() drops the entry and calls revokeObjectURL for blob: urls only', () => {
+    const revoked = [];
+    const spy = { revokeObjectURL: (u) => revoked.push(u) };
+    const reg = createMediaRegistry({}, fakeLoader(), { url: spy });
+    const a = reg.add({ url: 'blob:a', name: 'A', width: 2, height: 2 });
+    const b = reg.add({ url: 'https://foo/b.png', name: 'B', width: 2, height: 2 });
+    reg.remove(a.key);
+    reg.remove(b.key);
+    expect(reg.get(a.key)).toBeUndefined();
+    expect(revoked).toEqual(['blob:a']);
+  });
+  it('keys() lists all current entries', () => {
+    const reg = createMediaRegistry({}, fakeLoader());
+    reg.add({ url: 'blob:x', name: 'X', width: 1, height: 1 });
+    expect(reg.keys()).toEqual(expect.arrayContaining([expect.stringMatching(/^user_/)]));
+  });
+});
