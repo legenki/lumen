@@ -19,10 +19,8 @@ export const colorCorrection = {
   },
   controls: [
     { type: 'slider', path: 'mix', label: 'Pass Mix', min: 0, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'slider', path: 'brightness', label: 'Brightness', min: -1, max: 1, step: 0.01 },
     { type: 'slider', path: 'contrast', label: 'Contrast', min: -1, max: 5, step: 0.01 },
-    { type: 'separator' },
     { type: 'slider', path: 'saturation', label: 'Saturation', min: 0, max: 5, step: 0.01 },
   ],
   uniforms(p) {

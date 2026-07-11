@@ -31,10 +31,8 @@ export const rgbShift = {
   },
   controls: [
     { type: 'slider', path: 'mix', label: 'Pass Mix', min: 0, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'select', path: 'abMode', label: 'Aberration Mode', options: RGB_SHIFT_MODES },
     { type: 'slider', path: 'abStrength', label: 'Shift Strength', min: -50, max: 50, step: 0.1 },
-    { type: 'separator' },
     {
       type: 'slider',
       path: 'abAngle',
@@ -51,13 +49,10 @@ export const rgbShift = {
       axes: { x: { min: -0.5, max: 0.5, step: 0.01 }, y: { min: -0.5, max: 0.5, step: 0.01 } },
       showIf: { path: 'abMode', notEquals: 0 },
     },
-    { type: 'separator' },
     { type: 'slider', path: 'abChannel.x', label: 'Channel R', min: 0, max: 1, step: 0.01 },
     { type: 'slider', path: 'abChannel.y', label: 'Channel G', min: 0, max: 1, step: 0.01 },
     { type: 'slider', path: 'abChannel.z', label: 'Channel B', min: 0, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'slider', path: 'hueShift', label: 'Hue Shift', min: -1, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'select', path: 'wrapMode', label: 'Wrapping Mode', options: WRAP_MODES },
   ],
   uniforms(p, env) {

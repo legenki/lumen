@@ -32,14 +32,11 @@ export const gradientMap = {
   controls: [
     { type: 'select', path: 'blendMode', label: 'Blending Mode', options: BLEND_MODES },
     { type: 'slider', path: 'mix', label: 'Pass Mix', min: 0, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'slider', path: 'mapGamma', label: 'Input Gamma', min: 0.01, max: 5, step: 0.01 },
     { type: 'slider', path: 'mapRange.min', label: 'Input Range Min', min: 0, max: 1, step: 0.01 },
     { type: 'slider', path: 'mapRange.max', label: 'Input Range Max', min: 0, max: 1, step: 0.01 },
     { type: 'check', path: 'mapReverse', label: 'Reverse Map' },
-    { type: 'separator' },
     { type: 'gradientMapper', path: 'gradient', label: 'Gradient' },
-    { type: 'separator' },
     { type: 'select', path: 'alphaMode', label: 'Alpha Mode', options: ALPHA_MODES },
   ],
   uniforms(p, env) {

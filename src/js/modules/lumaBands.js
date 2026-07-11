@@ -30,7 +30,6 @@ export const lumaBands = {
   controls: [
     { type: 'select', path: 'blendMode', label: 'Blending Mode', options: BLEND_MODES },
     { type: 'slider', path: 'mix', label: 'Pass Mix', min: 0, max: 1, step: 0.01 },
-    { type: 'separator' },
     { type: 'slider', path: 'weight', label: 'Luma Weight', min: 0, max: 10, step: 0.01 },
     { type: 'slider', path: 'weightAmp', label: 'Animation Range', min: 0, max: 2, step: 0.01 },
     {
@@ -42,10 +41,8 @@ export const lumaBands = {
       step: 0.1,
       showIf: { path: 'weightAmp', notEquals: 0 },
     },
-    { type: 'separator' },
     { type: 'slider', path: 'phase', label: 'Phase', min: 0, max: 1, step: 0.01 },
     { type: 'slider', path: 'phaseFreq', label: 'Phase Animation', min: 0, max: 10, step: 0.1 },
-    { type: 'separator' },
     { type: 'slider', path: 'contrast', label: 'Bands Contrast', min: 0.25, max: 5, step: 0.01 },
   ],
   uniforms(p, env) {

@@ -121,7 +121,6 @@ describe('module control schemas', () => {
       expect(Array.isArray(def.controls)).toBe(true);
       expect(def.controls.length).toBeGreaterThan(0);
       for (const c of def.controls) {
-        if (c.type === 'separator') continue; // separators have no path
         expect(getByPath(def.defaults, c.path)).not.toBeUndefined();
       }
     }

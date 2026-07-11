@@ -227,10 +227,10 @@ git commit -m "feat: pipeline v2 with fbo pool, mask stack and blur engine"
 
 **lumaBands** (47405-47420): u_time env.time; u_blendMode; u_contrast; u_weight; u_weightAmp; u_weightFreq; u_mix; u_phase; u_phaseFreq.
 
-- [ ] **Step 1: Тесты** (`colorGroup.test.js`) — по образцу fills.test.js: реестр содержит 4 новых ключа; uniforms(defaults, ENV) → проверка КАЖДОГО маппинга с конкретными числами (ENV = {width:1200, height:960, time:0.25, frameRate:60, totalFrames:600, scaleValue:2.5, media:{}}; например rgbShift: u_texelSize [1/1200, 1/960], u_maxStrength 125, u_abFocus сдвиг +0.5; gradientMap: u_ditherStrength 10/255); zero-alloc identity; controls: каждый path резолвится в defaults; сверка defaults против reference (обновить общий node-скрипт: перечислить все ключи src MODULES).
-- [ ] **Step 2:** FAIL → реализация 4 модулей (паттерн fillGradient: module-level scratch, uniforms()) + index.js + optionTables (добавить недостающие ИЗ reference/filtr/modules.js: RGB_SHIFT_MODES, EMBOSS_* пока не нужны — только то, что требуют panels этих 4 модулей; сверить по их panels) → PASS.
-- [ ] **Step 3:** Полный test/lint + node-сверка defaults (8 модулей OK).
-- [ ] **Step 4: Commit** — `feat: color group modules (gradientMap, colorCorrection, rgbShift, lumaBands)`
+- [x] **Step 1: Тесты** (`colorGroup.test.js`) — по образцу fills.test.js: реестр содержит 4 новых ключа; uniforms(defaults, ENV) → проверка КАЖДОГО маппинга с конкретными числами (ENV = {width:1200, height:960, time:0.25, frameRate:60, totalFrames:600, scaleValue:2.5, media:{}}; например rgbShift: u_texelSize [1/1200, 1/960], u_maxStrength 125, u_abFocus сдвиг +0.5; gradientMap: u_ditherStrength 10/255); zero-alloc identity; controls: каждый path резолвится в defaults; сверка defaults против reference (обновить общий node-скрипт: перечислить все ключи src MODULES).
+- [x] **Step 2:** FAIL → реализация 4 модулей (паттерн fillGradient: module-level scratch, uniforms()) + index.js + optionTables (добавить недостающие ИЗ reference/filtr/modules.js: RGB_SHIFT_MODES, EMBOSS_* пока не нужны — только то, что требуют panels этих 4 модулей; сверить по их panels) → PASS.
+- [x] **Step 3:** Полный test/lint + node-сверка defaults (8 модулей OK).
+- [x] **Step 4: Commit** — `feat: color group modules (gradientMap, colorCorrection, rgbShift, lumaBands)`
 
 ---
 
