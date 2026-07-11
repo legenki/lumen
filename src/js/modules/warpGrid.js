@@ -39,7 +39,7 @@ export const warpGrid = {
     {
       type: 'slider',
       path: 'mix',
-      label: 'Pass Mix',
+      label: 'Effect Mix',
       min: 0,
       max: 1,
       step: 0.01,
@@ -47,7 +47,7 @@ export const warpGrid = {
     {
       type: 'slider',
       path: 'strength',
-      label: 'Strength',
+      label: 'Effect Strength',
       min: 0,
       max: 1,
       step: 0.01,
@@ -55,7 +55,7 @@ export const warpGrid = {
     {
       type: 'slider',
       path: 'cellFeather',
-      label: 'Cell Feather',
+      label: 'Cell Smoothing',
       min: 0,
       max: 1,
       step: 0.01,
@@ -69,9 +69,9 @@ export const warpGrid = {
     {
       type: 'slider',
       path: 'gridCell',
-      label: 'Grid Cell',
-      min: 1,
-      max: 64,
+      label: 'Grid Cells',
+      min: 2,
+      max: 128,
       step: 1,
       showIf: { key: 'gridMode', notEquals: 2 },
     },
@@ -79,23 +79,26 @@ export const warpGrid = {
       type: 'centerPoint',
       path: 'gridCells',
       label: 'Grid Cells',
-      axes: { x: 'X', y: 'Y' },
+      axes: {
+        x: { min: 2, max: 128, step: 1 },
+        y: { min: 2, max: 128, step: 1 },
+      },
       showIf: { key: 'gridMode', equals: 2 },
     },
     {
       type: 'slider',
       path: 'gridScale',
       label: 'Grid Scale',
-      min: 0,
+      min: 0.5,
       max: 2,
       step: 0.01,
     },
     {
       type: 'slider',
       path: 'gridAngle',
-      label: 'Grid Angle',
-      min: 0,
-      max: 360,
+      label: 'Grid Rotation',
+      min: -180,
+      max: 180,
       step: 1,
     },
     {
@@ -117,8 +120,8 @@ export const warpGrid = {
       type: 'slider',
       path: 'falloffFocus1D',
       label: 'Falloff Focus',
-      min: -1,
-      max: 1,
+      min: -0.5,
+      max: 0.5,
       step: 0.01,
       showIf: [
         { key: 'gridMode', equals: 0 },
@@ -129,7 +132,10 @@ export const warpGrid = {
       type: 'centerPoint',
       path: 'falloffFocus2D',
       label: 'Falloff Focus',
-      axes: { x: 'X', y: 'Y' },
+      axes: {
+        x: { min: -0.5, max: 0.5, step: 0.01 },
+        y: { min: -0.5, max: 0.5, step: 0.01 },
+      },
       showIf: [
         { key: 'gridMode', notEquals: 0 },
         { key: 'falloffMode', notEquals: 0 },
@@ -138,7 +144,7 @@ export const warpGrid = {
     {
       type: 'select',
       path: 'wrapMode',
-      label: 'Wrap Mode',
+      label: 'Wrapping Mode',
       options: WRAP_MODES,
     },
   ],

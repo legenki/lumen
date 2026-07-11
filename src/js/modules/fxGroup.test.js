@@ -252,3 +252,66 @@ describe('warpGrid showIf logic for controls', () => {
     }
   });
 });
+
+describe('module control schemas (fx group) — contract', () => {
+  it('every control has a path (no separators leak into schemas) — all 18 modules', () => {
+    for (const def of Object.values(MODULES)) {
+      for (const c of def.controls) {
+        expect(typeof c.path, `${def.key}: control without path (${c.type})`).toBe('string');
+      }
+    }
+  });
+
+  it('lensGrid has all 19 controls from reference.panels', () => {
+    const keys = MODULES.lensGrid.controls.map((c) => c.path);
+    const expected = [
+      'strength', 'blur', 'gridCells', 'gridScale', 'gridAngle',
+      'squircle', 'lensScale', 'edgeSoftness', 'ior', 'curvature',
+      'aberration', 'lightDir', 'specAmount', 'specPower', 'specColor',
+      'shadowAmount', 'shadowPower', 'shadowColor', 'wrapMode',
+    ];
+    for (const key of expected) {
+      expect(keys, `lensGrid missing control: ${key}`).toContain(key);
+    }
+    expect(MODULES.lensGrid.controls.length).toBe(19);
+  });
+
+  it('embossEffect slider ranges align with reference', () => {
+    const c = MODULES.embossEffect.controls;
+    const depthSize = c.find((x) => x.path === 'depthSize');
+    expect(depthSize.step).toBe(0.1);
+    const heightSize = c.find((x) => x.path === 'heightSize');
+    expect(heightSize.min).toBe(0.01);
+    expect(heightSize.max).toBe(10);
+    const lightAlt = c.find((x) => x.path === 'lightAlt');
+    expect(lightAlt.min).toBe(0);
+    expect(lightAlt.max).toBe(90);
+    expect(lightAlt.step).toBe(0.1);
+  });
+
+  it('lensGrid slider ranges align with reference', () => {
+    const c = MODULES.lensGrid.controls;
+    const gridScale = c.find((x) => x.path === 'gridScale');
+    expect(gridScale.min).toBe(0.5);
+    expect(gridScale.max).toBe(2.5);
+    const gridAngle = c.find((x) => x.path === 'gridAngle');
+    expect(gridAngle.min).toBe(-180);
+    expect(gridAngle.max).toBe(180);
+  });
+
+  it('warpGrid slider ranges align with reference', () => {
+    const c = MODULES.warpGrid.controls;
+    const gridCell = c.find((x) => x.path === 'gridCell');
+    expect(gridCell.min).toBe(2);
+    expect(gridCell.max).toBe(128);
+    const gridScale = c.find((x) => x.path === 'gridScale');
+    expect(gridScale.min).toBe(0.5);
+    expect(gridScale.max).toBe(2);
+    const gridAngle = c.find((x) => x.path === 'gridAngle');
+    expect(gridAngle.min).toBe(-180);
+    expect(gridAngle.max).toBe(180);
+    const focus1D = c.find((x) => x.path === 'falloffFocus1D');
+    expect(focus1D.min).toBe(-0.5);
+    expect(focus1D.max).toBe(0.5);
+  });
+});
