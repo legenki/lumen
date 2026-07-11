@@ -63,13 +63,107 @@ describe('createLayerList', () => {
     expect(cb.onDuplicate).toHaveBeenCalledWith('p03');
   });
 
-  it('drag & drop reorders via onReorder(fromIndex, toIndex)', () => {
+  it('drag & drop reorders via onReorder(fromIndex, toIndex, mode)', () => {
     const items = container.querySelectorAll('.layer-row');
+    items[2].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
     const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
     items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
-    items[2].dispatchEvent(Object.assign(new Event('dragover', { bubbles: true, cancelable: true }), { dataTransfer: dt }));
-    items[2].dispatchEvent(Object.assign(new Event('drop', { bubbles: true }), { dataTransfer: dt }));
-    expect(cb.onReorder).toHaveBeenCalledWith(0, 2);
+    items[2].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 5 }), { dataTransfer: dt }));
+    items[2].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 5 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenCalledWith(0, 2, 'above');
+  });
+
+  it('emits onReorder with mode "into" when dropping in the middle of a mask row', () => {
+    layers = [
+      { id: 'p01', label: 'Fill: Color', enabled: true, isMask: false, indent: false, badge: 0 },
+      { id: 'p02', label: 'MASK', enabled: true, isMask: true, indent: false, badge: 0 },
+    ];
+    list.refresh();
+    const items = container.querySelectorAll('.layer-row');
+    items[1].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 20 }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 20 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenCalledWith(0, 1, 'into');
+  });
+
+  it('emits mode "above" when dropping in the top 40% of a non-mask row', () => {
+    const items = container.querySelectorAll('.layer-row');
+    items[2].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[2].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 10 }), { dataTransfer: dt }));
+    items[2].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 10 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenCalledWith(0, 2, 'above');
+  });
+
+  it('emits mode "below" when dropping in the bottom 40% of a non-mask row', () => {
+    const items = container.querySelectorAll('.layer-row');
+    items[2].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[2].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 30 }), { dataTransfer: dt }));
+    items[2].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 30 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenCalledWith(0, 2, 'below');
+  });
+
+  it('on a mask row: top zone is "above", bottom zone is "below", middle zone is "into"', () => {
+    layers = [
+      { id: 'p01', label: 'Fill: Color', enabled: true, isMask: false, indent: false, badge: 0 },
+      { id: 'p02', label: 'MASK', enabled: true, isMask: true, indent: false, badge: 0 },
+    ];
+    list.refresh();
+    const items = container.querySelectorAll('.layer-row');
+    items[1].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
+
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 5 }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 5 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenNthCalledWith(1, 0, 1, 'above');
+
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 35 }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 35 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenNthCalledWith(2, 0, 1, 'below');
+
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 20 }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 20 }), { dataTransfer: dt }));
+    expect(cb.onReorder).toHaveBeenNthCalledWith(3, 0, 1, 'into');
+  });
+
+  it('adds .is-drop-into on dragover in the middle zone of a mask row, and clears it on dragleave/drop', () => {
+    layers = [
+      { id: 'p01', label: 'Fill: Color', enabled: true, isMask: false, indent: false, badge: 0 },
+      { id: 'p02', label: 'MASK', enabled: true, isMask: true, indent: false, badge: 0 },
+    ];
+    list.refresh();
+    const items = container.querySelectorAll('.layer-row');
+    items[1].getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '0'), effectAllowed: '' };
+
+    items[0].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 20 }), { dataTransfer: dt }));
+    expect(items[1].classList.contains('is-drop-into')).toBe(true);
+
+    items[1].dispatchEvent(new Event('dragleave', { bubbles: true }));
+    expect(items[1].classList.contains('is-drop-into')).toBe(false);
+
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 20 }), { dataTransfer: dt }));
+    expect(items[1].classList.contains('is-drop-into')).toBe(true);
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 20 }), { dataTransfer: dt }));
+    expect(items[1].classList.contains('is-drop-into')).toBe(false);
+  });
+
+  it('does not call onReorder when dropping a row onto itself (from === to)', () => {
+    const items = container.querySelectorAll('.layer-row');
+    const dt = { setData: vi.fn(), getData: vi.fn(() => '1'), effectAllowed: '' };
+    items[1].dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 5 }), { dataTransfer: dt }));
+    items[1].dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: 5 }), { dataTransfer: dt }));
+    expect(cb.onReorder).not.toHaveBeenCalled();
   });
 
   it('escapes HTML in labels', () => {

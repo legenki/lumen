@@ -30,6 +30,18 @@ export function createLayerList({ container, getLayers, getSelectedId, callbacks
       </span>`;
   }
 
+  /** Вычисляет режим drop по вертикальной позиции курсора внутри строки:
+   *  верхние 40% → 'above', нижние 40% → 'below', средние 20% → 'into'
+   *  (только для строк-масок; для прочих строк середина трактуется как 'above'). */
+  function dropMode(e, li, layer) {
+    const rect = li.getBoundingClientRect();
+    const y = (e.clientY ?? 0) - rect.top;
+    const h = rect.height || 1;
+    if (y < h * 0.4) return 'above';
+    if (y > h * 0.6) return 'below';
+    return layer.isMask ? 'into' : 'above';
+  }
+
   function refresh() {
     root.innerHTML = '';
     const layers = getLayers();
@@ -59,18 +71,20 @@ export function createLayerList({ container, getLayers, getSelectedId, callbacks
         li.classList.add('is-dragging');
         e.dataTransfer?.setData?.('text/plain', String(index));
       });
-      li.addEventListener('dragend', () => li.classList.remove('is-dragging'));
+      li.addEventListener('dragend', () => li.classList.remove('is-dragging', 'is-drop-target', 'is-drop-into'));
       li.addEventListener('dragover', (e) => {
         e.preventDefault();
         li.classList.add('is-drop-target');
+        li.classList.toggle('is-drop-into', dropMode(e, li, layer) === 'into');
       });
-      li.addEventListener('dragleave', () => li.classList.remove('is-drop-target'));
+      li.addEventListener('dragleave', () => li.classList.remove('is-drop-target', 'is-drop-into'));
       li.addEventListener('drop', (e) => {
         e.preventDefault?.();
-        li.classList.remove('is-drop-target');
+        li.classList.remove('is-drop-target', 'is-drop-into');
         const from = dragFrom >= 0 ? dragFrom : parseInt(e.dataTransfer?.getData?.('text/plain') ?? '-1', 10);
         dragFrom = -1;
-        if (from >= 0 && from !== index) callbacks.onReorder?.(from, index);
+        if (from < 0 || from === index) return;
+        callbacks.onReorder?.(from, index, dropMode(e, li, layer));
       });
 
       root.appendChild(li);

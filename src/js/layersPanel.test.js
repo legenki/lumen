@@ -1,8 +1,9 @@
 // LUMEN — display-модель Layers-списка: чистая функция buildLayerRows(state),
 // тестируется без jsdom (не трогает DOM). Семантика indent/badge —
 // getMaskBlockMemberIds (bundle-pretty.js:48168-48182): непрерывный блок.
-import { describe, it, expect } from 'vitest';
-import { buildLayerRows } from './layersPanel.js';
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { buildLayerRows, buildLayersSection } from './layersPanel.js';
 
 function pass(id, overrides = {}) {
   return { id, type: 'pass', module: 'fillColor', enabled: true, params: {}, ...overrides };
@@ -84,5 +85,88 @@ describe('buildLayerRows', () => {
     const state = { stack: [pass('p01', { module: 'fillColor' })] };
     const rows = buildLayerRows(state);
     expect(rows[0].label).toBe('Fill: Color');
+  });
+});
+
+describe('buildLayersSection onReorder (drag into/out of MASK groups)', () => {
+  beforeEach(() => {
+    // jsdom резолвит scoped querySelector('#id') неверно, если тот же id уже
+    // существует где-то ещё в document — чистим между тестами, чтобы
+    // повторные duplicate id (#lm-layers-module и т.п.) из прошлых mount() не мешали.
+    document.body.innerHTML = '';
+  });
+
+  function makeState(stack) {
+    return { stack, ui: { selectedId: null } };
+  }
+
+  function mount(state) {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+    const onStackChange = vi.fn();
+    const onSelect = vi.fn();
+    const api = buildLayersSection(root, { state, onStackChange, onSelect });
+    return { root, api, onStackChange, onSelect };
+  }
+
+  function dragDrop(root, fromIndex, toIndex, mode, clientY) {
+    const items = root.querySelectorAll('.layer-row');
+    const from = items[fromIndex];
+    const to = items[toIndex];
+    if (clientY !== undefined) to.getBoundingClientRect = () => ({ top: 0, left: 0, width: 100, height: 40, right: 100, bottom: 40 });
+    const dt = { setData: vi.fn(), getData: vi.fn(() => String(fromIndex)), effectAllowed: '' };
+    from.dispatchEvent(Object.assign(new Event('dragstart', { bubbles: true }), { dataTransfer: dt }));
+    to.dispatchEvent(Object.assign(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: clientY ?? 0 }), { dataTransfer: dt }));
+    to.dispatchEvent(Object.assign(new MouseEvent('drop', { bubbles: true, clientY: clientY ?? 0 }), { dataTransfer: dt }));
+  }
+
+  it('mode "into" on a mask row moves src right after the mask and adds it to maskMembers', () => {
+    const state = makeState([
+      pass('p01'),
+      mask('p02', []),
+      pass('p03'),
+    ]);
+    const { root, onStackChange } = mount(state);
+    // Drag p01 (index 0) into p02 (index 1, mask) at mid-height → mode 'into'.
+    dragDrop(root, 0, 1, 'into', 20);
+    expect(state.stack.map((m) => m.id)).toEqual(['p02', 'p01', 'p03']);
+    const maskInst = state.stack.find((m) => m.id === 'p02');
+    expect(maskInst.maskMembers).toContain('p01');
+    expect(onStackChange).toHaveBeenCalled();
+  });
+
+  it('reordering a pass OUT of a mask group (mode "below", past the block) shortens maskMembers', () => {
+    const state = makeState([
+      mask('p02', ['p03', 'p04']),
+      pass('p03'),
+      pass('p04'),
+      pass('p05'),
+    ]);
+    const { root } = mount(state);
+    // Move p03 (index 1) below p05 (index 3) — drops it after the mask block entirely.
+    dragDrop(root, 1, 3, 'below', 30);
+    const maskInst = state.stack.find((m) => m.id === 'p02');
+    // p03 is no longer immediately after the mask (p04 now leads), so continuity breaks it out.
+    expect(maskInst.maskMembers).not.toContain('p03');
+  });
+
+  it('mode "above" moving a pass above a mask member keeps maskMembers as a contiguous block', () => {
+    const state = makeState([
+      pass('p01'),
+      mask('p02', ['p03', 'p04']),
+      pass('p03'),
+      pass('p04'),
+    ]);
+    const { root } = mount(state);
+    // Drag p01 (index 0) to just above p04 (index 3) inside the block.
+    dragDrop(root, 0, 3, 'above', 5);
+    const maskInst = state.stack.find((m) => m.id === 'p02');
+    // p01 was never a member — after the reorder, membership is recomputed as the
+    // contiguous run right after the mask that IS listed in maskMembers.
+    expect(maskInst.maskMembers).toEqual(
+      expect.arrayContaining(state.stack.slice(2).filter((m) => maskInst.maskMembers.includes(m.id)).map((m) => m.id)),
+    );
+    // p01 (non-member) inserted between mask and p03 breaks continuity for members.
+    expect(state.stack.map((m) => m.id)[2]).not.toBe('p03');
   });
 });

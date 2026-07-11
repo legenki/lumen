@@ -92,8 +92,38 @@ export function buildLayersSection(root, { state, onStackChange, onSelect }) {
         onStackChange();
         onSelect();
       },
-      onReorder(from, to) {
-        moveModule(state, from, to);
+      onReorder(from, to, mode = 'above') {
+        const target = state.stack[to];
+        const src = state.stack[from];
+        if (!target || !src) return;
+        if (mode === 'into' && target.type === 'mask' && src.type === 'pass') {
+          // Кладём src сразу после маски и добавляем его id в maskMembers.
+          // moveModule splice'ит fromIndex ДО вставки, поэтому если src шёл
+          // раньше маски, её эффективный индекс после удаления уменьшается
+          // на 1 — компенсируем, чтобы попасть ровно "после маски".
+          const insertAt = from < to ? to : to + 1;
+          moveModule(state, from, insertAt);
+          if (!target.maskMembers.includes(src.id)) target.maskMembers.push(src.id);
+        } else {
+          // Обычный reorder (above/below); membership пересчитывается ниже
+          // как непрерывный блок инстансов сразу после каждой маски.
+          const insertAt = mode === 'below' ? to + 1 : to;
+          moveModule(state, from, from < insertAt ? insertAt - 1 : insertAt);
+        }
+        // Пересчёт maskMembers каждой маски: оставляем только непрерывный
+        // блок id сразу после неё (getMaskBlockMemberIds-семантика).
+        for (const inst of state.stack) {
+          if (inst.type !== 'mask' || !Array.isArray(inst.maskMembers)) continue;
+          const idx = state.stack.indexOf(inst);
+          const members = new Set(inst.maskMembers);
+          const block = new Set();
+          let j = idx + 1;
+          while (j < state.stack.length && members.has(state.stack[j].id)) {
+            block.add(state.stack[j].id);
+            j++;
+          }
+          inst.maskMembers = inst.maskMembers.filter((id) => block.has(id));
+        }
         layerList.refresh();
         onStackChange();
       },
