@@ -251,7 +251,7 @@ git commit -m "feat: pipeline v2 with fbo pool, mask stack and blur engine"
 
 **displaceTexture** (47254-47269): модуль с `run()`-хуком (нужны 2 медиа-текстуры): texture-слот p.texture (карта смещения; not-ready → пасс прозрачен), source-слот p.source (что сэмплим; null/'' → использовать ту же texture — семантика `B(p,"source") ?? L` бандла; select в панели «Previous Pass|Media File» управляет тем, задан ли source-слот — сверься с reference panels и шейдером src/shaders/displaceTexture.frag). Uniform'ы: u_disp/u_dispRes (texture), u_img/u_imgRes (source), u_dispMode 1; u_weight [p.weight.x,p.weight.y]; u_mode p.mode; u_scale p.scale/100; u_angle radians(0); u_offset [p.position.x/100,p.position.y/100]; u_wrapMode; u_srcScale p.scaleSrc/100; u_srcAngle radians(p.rotateSrc); u_srcOffset [p.positionSrc.x/100,p.positionSrc.y/100]; u_srcWrapMode p.wrapModeSrc; u_srcRes [w,h]. `run()` использует ctx.nextTarget/shaders/maskTex по образцу runPass (вернуть fbo.color).
 
-- [ ] Шаги TDD как в Task 3 (тесты с конкретными числами: sine amp 50→0.125; simplex speed 50→0.005×600=3; texture scale/offset деления на 100), реализация, node-сверка defaults (12 OK), commit `feat: displace group modules`.
+- [x] Шаги TDD как в Task 3 (тесты с конкретными числами: sine amp 50→0.125; simplex speed 50→0.005×600=3; texture scale/offset деления на 100), реализация, node-сверка defaults (12 OK), commit `feat: displace group modules`.
 
 ---
 

@@ -6,6 +6,16 @@ import { createCenterPoint } from '../shared/ui/centerPoint.js';
 import { createGradientMapper } from '../shared/ui/gradientMapper.js';
 import { MODULES } from './modules/index.js';
 
+/** Видимость контрола по showIf: { path, notEquals? | equals? | in? }. */
+export function isControlVisible(control, params) {
+  if (!control.showIf) return true;
+  const val = getByPath(params, control.showIf.path);
+  if ('notEquals' in control.showIf) return val !== control.showIf.notEquals;
+  if ('equals' in control.showIf) return val === control.showIf.equals;
+  if (Array.isArray(control.showIf.in)) return control.showIf.in.includes(val);
+  return true;
+}
+
 export function renderInspector(root, { state, onParamChange }) {
   root.innerHTML = '';
   const inst = state.stack.find((m) => m.id === state.ui.selectedId);
@@ -31,8 +41,7 @@ export function renderInspector(root, { state, onParamChange }) {
       if (!c.showIf) continue;
       const row = content.querySelector(`[data-control-id="${controlId(c)}"]`);
       if (!row) continue;
-      const val = getByPath(inst.params, c.showIf.path);
-      row.style.display = val !== c.showIf.notEquals ? '' : 'none';
+      row.style.display = isControlVisible(c, inst.params) ? '' : 'none';
     }
   }
 
