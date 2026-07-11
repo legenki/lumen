@@ -5,6 +5,7 @@ import { createPanelBuilder, getByPath, escapeHtml } from '../shared/ui/panelBui
 import { createCenterPoint } from '../shared/ui/centerPoint.js';
 import { createGradientMapper } from '../shared/ui/gradientMapper.js';
 import { MODULES } from './modules/index.js';
+import { DEFAULT_MEDIA } from './assets.js';
 
 /** Видимость контрола по showIf: { path, notEquals? | equals? | in? }. */
 export function isControlVisible(control, params) {
@@ -76,6 +77,15 @@ export function renderInspector(root, { state, onParamChange }) {
       });
       gm.refresh();
       content.lastElementChild.dataset.controlId = controlId(c);
+    } else if (c.type === 'media') {
+      const mediaOptions = Object.fromEntries(Object.keys(DEFAULT_MEDIA).map((k) => [k, k]));
+      const row = panel.buildControl({
+        ...c,
+        type: 'select',
+        id: controlId(c),
+        options: mediaOptions,
+      });
+      content.appendChild(row);
     } else {
       const row = panel.buildControl({ ...c, id: controlId(c) });
       content.appendChild(row);
