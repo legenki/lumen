@@ -3,10 +3,11 @@ import { registerSW } from 'virtual:pwa-register';
 import { createDefaultState, serializeState, restoreState } from './state.js';
 import { lumenSketch } from './app.js';
 import { LEFT_SECTIONS } from './controls.js';
-import { addModule } from './stack.js';
 import { createPanelBuilder, openSections } from '../shared/ui/panelBuilder.js';
 import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
+import { buildLayersSection } from './layersPanel.js';
+import { renderInspector } from './inspector.js';
 
 const STORAGE_KEY = 'lumen-tool';
 
@@ -27,21 +28,10 @@ const { saveState, loadState } = createPersistence(
 loadState();
 
 let api = null; // { scheduler, rebuildBuffer, getBuffer } — придёт из sketch onReady
+let layersPanel = null; // { refresh } — хэндл секции Layers, для отладки в консоли
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
-  if (ctrl.id === 'lm-stack-add') {
-    addModule(state, state.ui.devModule);
-    api?.scheduler.requestRender();
-    saveState();
-    return;
-  }
-  if (ctrl.id === 'lm-stack-clear') {
-    state.stack.length = 0; // AGENTS.md §5: очистка без реаллокации
-    api?.scheduler.requestRender();
-    saveState();
-    return;
-  }
   if (ctrl.regen === 'buffer' && api) {
     api.rebuildBuffer();
     api.scheduler.requestRender();
@@ -81,10 +71,29 @@ function setStatus(text) {
 
 const panel = createPanelBuilder({ state, applyChange, refreshVisibility });
 
+function refreshInspector() {
+  renderInspector(document.getElementById('lm-inspector'), {
+    state,
+    onParamChange() {
+      api?.scheduler.requestRender();
+      saveState();
+    },
+  });
+}
+
 function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
   panel.buildSections(root, LEFT_SECTIONS);
+  layersPanel = buildLayersSection(root, {
+    state,
+    onStackChange() {
+      api?.scheduler.requestRender();
+      saveState();
+    },
+    onSelect: refreshInspector,
+  });
+  window.__lumenLayersPanel = layersPanel; // отладка в консоли; не API
   openSections(root, [0, 1]);
   document.getElementById('lm-btn-save-png')
     .addEventListener('click', () => applyChange({ id: 'lm-btn-save-png' }));
@@ -97,6 +106,7 @@ new p5((p) => lumenSketch(p, {
     api = a;
     buildUI();
     panel.syncUIFromState(LEFT_SECTIONS);
+    refreshInspector();
   },
 }), container);
 

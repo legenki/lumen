@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createModuleInstance, addModule, removeModule, getRenderPasses } from './stack.js';
+import {
+  createModuleInstance, addModule, removeModule, getRenderPasses,
+  duplicateModule, moveModule,
+} from './stack.js';
 import { createDefaultState } from './state.js';
 import { MODULES } from './modules/index.js';
 
@@ -39,5 +42,31 @@ describe('getRenderPasses', () => {
     b.enabled = false;
     const c = addModule(s, 'fillNoise');
     expect(getRenderPasses(s.stack).map((m) => m.id)).toEqual([a.id, c.id]);
+  });
+});
+
+describe('duplicateModule', () => {
+  it('clones instance with fresh id right after the original', () => {
+    const s = createDefaultState();
+    const a = addModule(s, 'fillColor');
+    const b = addModule(s, 'fillNoise');
+    a.params.mix = 0.42;
+    const dup = duplicateModule(s, a.id);
+    expect(s.stack.map((m) => m.id)).toEqual([a.id, dup.id, b.id]);
+    expect(dup.module).toBe('fillColor');
+    expect(dup.params.mix).toBe(0.42);
+    dup.params.mix = 1;
+    expect(a.params.mix).toBe(0.42); // независимая копия
+  });
+});
+
+describe('moveModule', () => {
+  it('moves instance between indices', () => {
+    const s = createDefaultState();
+    const a = addModule(s, 'fillColor');
+    const b = addModule(s, 'fillGradient');
+    const c = addModule(s, 'fillNoise');
+    moveModule(s, 0, 2);
+    expect(s.stack.map((m) => m.id)).toEqual([b.id, c.id, a.id]);
   });
 });

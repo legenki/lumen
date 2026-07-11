@@ -157,7 +157,15 @@ export function createPanelBuilder({
       row.appendChild(header);
       row.appendChild(select);
       select.addEventListener('change', (e) => {
-        setByPath(state, ctrl.path, e.target.value);
+        // lumen fork: сохраняем тип значения опции (числовые blend/wrap-моды).
+        // <select> всегда отдаёт e.target.value строкой; Lumen-модули задают
+        // options с числовыми value (BLEND_MODES и т.п.), а showIf/uniforms
+        // ждут исходный тип. Ищем опцию с совпадающим String(value) и пишем
+        // её настоящее значение вместо сырой строки. Строковые options
+        // (напр. RATIO_TYPES) сравниваются как есть — поведение не меняется.
+        const raw = e.target.value;
+        const entry = optionEntries(ctrl.options).find(([, v]) => String(v) === raw);
+        setByPath(state, ctrl.path, entry ? entry[1] : raw);
         applyChange(ctrl);
         refreshVisibility();
       });
