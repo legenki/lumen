@@ -33,3 +33,18 @@ export function packGradient(stops, timesOut, colorsOut) {
   }
   return n;
 }
+
+/** Транскрипция ja (bundle-pretty.js:46940-46942): линейный remap. */
+export function map(v, inMin, inMax, outMin, outMax) {
+  return inMax === inMin ? outMin : outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
+}
+
+/** Подмножество таблицы easings hI (bundle 47031-47064), используемое пассами. */
+export const EASE = {
+  linear: (t) => t,
+  quadIn: (t) => t * t,
+  sineIn: (t) => 1 - Math.cos((t * Math.PI) / 2),
+};
+
+/** Таблица качества блюра yF (bundle 39253); индекс = params.quality. */
+export const QUALITY_SCALE = [1, 1.5, 3, 5];

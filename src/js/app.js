@@ -7,7 +7,7 @@ import { createRenderScheduler } from './scheduler.js';
 import { restoreGlModes } from './graphicsModes.js';
 import { createPipeline } from './pipeline.js';
 import { createMediaRegistry } from './media.js';
-import { DEFAULT_MEDIA } from './assets.js';
+import { DEFAULT_MEDIA, BLUE_NOISE_URL } from './assets.js';
 import { createAlphaImage } from '../shared/utils/alphaCheckerboard.js';
 
 export function lumenSketch(p, { state, onReady }) {
@@ -17,7 +17,15 @@ export function lumenSketch(p, { state, onReady }) {
   let alphaImg = null;
   const scheduler = createRenderScheduler(p);
   const vp = {}; // zero-alloc: переиспользуемый viewport-объект
-  const env = { width: 0, height: 0, time: 0, frameRate: 60, totalFrames: 1, media: null };
+  const env = {
+    width: 0,
+    height: 0,
+    time: 0,
+    frameRate: 60,
+    totalFrames: 1,
+    media: null,
+    textures: { blueNoise: null },
+  };
 
   function totalFrames() {
     return Math.max(1, Math.round(state.rec.length.value * state.rec.frameRate));
@@ -44,6 +52,14 @@ export function lumenSketch(p, { state, onReady }) {
     media = createMediaRegistry(DEFAULT_MEDIA, (url, ok, err) => p.loadImage(url, ok, err));
     env.media = media;
     media.whenReady().then(() => scheduler.requestRender()); // дозарисовка fillMedia
+    p.loadImage(
+      BLUE_NOISE_URL,
+      (img) => {
+        env.textures.blueNoise = img;
+        scheduler.requestRender();
+      },
+      () => console.warn('[lumen] blue-noise load failed')
+    );
     rebuildBuffer();
     scheduler.init();
     scheduler.setAnimating(state.cnv.animation);
@@ -68,6 +84,7 @@ export function lumenSketch(p, { state, onReady }) {
     env.frameRate = state.rec.frameRate;
     env.totalFrames = totalFrames();
     env.time = state.runtime.frame / env.totalFrames;
+    env.scaleValue = state.cnv.scale.value;
 
     const outTex = pipeline.render(state.stack, env);
     glc.clear();

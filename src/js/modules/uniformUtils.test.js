@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hexToRgba, radians, packGradient, GRADIENT_MAX } from './uniformUtils.js';
+import { hexToRgba, radians, packGradient, GRADIENT_MAX, map, EASE, QUALITY_SCALE } from './uniformUtils.js';
 
 describe('hexToRgba', () => {
   it('converts #RRGGBB + alpha into reused [r,g,b,a] 0..1', () => {
@@ -35,5 +35,30 @@ describe('packGradient', () => {
     expect(times.slice(0, 2)).toEqual([0, 1]);
     expect(colors.slice(0, 8)).toEqual([1, 1, 1, 1, 0, 0, 0, 0.5]);
     expect(times[2]).toBe(0); // хвост занулён
+  });
+});
+
+describe('map (транскрипция ja, bundle 46940-46942)', () => {
+  it('remaps linearly', () => {
+    expect(map(50, 0, 100, 0, 1)).toBeCloseTo(0.5, 10);
+    expect(map(0.3, 0, 1, 0, 0.25)).toBeCloseTo(0.075, 10);
+  });
+  it('returns out-min when input range is degenerate', () => {
+    expect(map(5, 2, 2, 7, 9)).toBe(7);
+  });
+});
+
+describe('EASE (нужные подмножества hI)', () => {
+  it('quadIn = t^2, sineIn = 1-cos(t·π/2)', () => {
+    expect(EASE.quadIn(0.5)).toBeCloseTo(0.25, 10);
+    expect(EASE.sineIn(1)).toBeCloseTo(1, 10);
+    expect(EASE.sineIn(0.5)).toBeCloseTo(1 - Math.cos(Math.PI / 4), 10);
+    expect(EASE.linear(0.7)).toBe(0.7);
+  });
+});
+
+describe('QUALITY_SCALE (yF, bundle 39253)', () => {
+  it('is [1, 1.5, 3, 5]', () => {
+    expect(QUALITY_SCALE).toEqual([1, 1.5, 3, 5]);
   });
 });
