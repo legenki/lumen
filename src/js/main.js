@@ -28,7 +28,6 @@ const { saveState, loadState } = createPersistence(
 loadState();
 
 let api = null; // { scheduler, rebuildBuffer, getBuffer } — придёт из sketch onReady
-let layersPanel = null; // { refresh } — хэндл секции Layers, для отладки в консоли
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
@@ -85,7 +84,7 @@ function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
   panel.buildSections(root, LEFT_SECTIONS);
-  layersPanel = buildLayersSection(root, {
+  buildLayersSection(root, {
     state,
     onStackChange() {
       api?.scheduler.requestRender();
@@ -93,7 +92,6 @@ function buildUI() {
     },
     onSelect: refreshInspector,
   });
-  window.__lumenLayersPanel = layersPanel; // отладка в консоли; не API
   openSections(root, [0, 1]);
   document.getElementById('lm-btn-save-png')
     .addEventListener('click', () => applyChange({ id: 'lm-btn-save-png' }));
