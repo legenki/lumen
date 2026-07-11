@@ -8,6 +8,8 @@ import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
 import { buildLayersSection } from './layersPanel.js';
 import { renderInspector } from './inspector.js';
+import { PRESETS } from './presets.js';
+import { applyPresetToState } from './presetConvert.js';
 
 const STORAGE_KEY = 'lumen-tool';
 
@@ -19,6 +21,19 @@ registerSW({
 
 const state = createDefaultState();
 window.__lumenState = state; // отладка в консоли; не API
+
+// dev-хук сверки с эталоном (UI пресетов — фаза 6)
+window.__lumenApplyPreset = (name) => {
+  const preset = PRESETS.find((p) => p.name === name);
+  if (!preset) return `not found; known: ${PRESETS.map((p) => p.name).join(', ')}`;
+  applyPresetToState(state, preset);
+  api?.rebuildBuffer();
+  api?.scheduler.requestRender();
+  saveState();
+  buildUI(); // перестроить Layers-список
+  refreshInspector();
+  return `applied: ${name} (${state.stack.length} modules)`;
+};
 
 const { saveState, loadState } = createPersistence(
   STORAGE_KEY, 'lumen',
@@ -95,8 +110,11 @@ function buildUI() {
     onSelect: refreshInspector,
   });
   openSections(root, [0, 1]);
-  document.getElementById('lm-btn-save-png')
-    .addEventListener('click', () => applyChange({ id: 'lm-btn-save-png' }));
+  // Fix: use onclick to avoid duplicate listeners on repeated buildUI calls
+  const pngBtn = document.getElementById('lm-btn-save-png');
+  if (pngBtn) {
+    pngBtn.onclick = () => applyChange({ id: 'lm-btn-save-png' });
+  }
 }
 
 const container = document.getElementById('lumen-canvas');
