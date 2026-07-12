@@ -51,7 +51,11 @@ describe('startMp4Export', () => {
     const opts = exportMP4.mock.calls[0][0];
     expect(opts.prefix).toBe('lumen');
     expect(opts.cnv).toBe(state.cnv);
-    expect(opts.rec).toBe(state.rec);
+    // rec — новый объект с приведённой шкалой quality (0..1 → 0..100)
+    expect(opts.rec).not.toBe(state.rec);
+    expect(opts.rec.frameRate).toBe(state.rec.frameRate);
+    expect(opts.rec.length).toBe(state.rec.length);
+    expect(opts.rec.quality).toBe(95); // 0.95 → 95
     expect(opts.recVideo).toBe(recVideo);
     expect(opts.setStatus).toBe(setStatus);
     expect(opts.getSize()).toEqual({ w: glc.width, h: glc.height });

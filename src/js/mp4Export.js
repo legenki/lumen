@@ -18,11 +18,15 @@ export function startMp4Export(api, state, recVideoState, setStatus, deps = { ex
   const p = api.getP();
   const glc = api.getBuffer();
   const wasAnimating = api.scheduler.isAnimating();
+  // state.rec.quality — по контракту filtr-tool это 0..1 (WebCodecs-параметр),
+  // а вендоренный exportMedia.exportMP4 из divix ждёт 0..100 (кванизация QP).
+  // Приводим шкалу, не трогая ни исходный state, ни вендоренный файл.
+  const rec = { ...state.rec, quality: Math.round((state.rec.quality ?? 0.95) * 100) };
   return deps.exportMP4({
     p,
     prefix: 'lumen',
     cnv: state.cnv,
-    rec: state.rec,
+    rec,
     recVideo: recVideoState,
     drawComposite: () => { p.redraw(); },
     getSize: () => ({ w: glc.width, h: glc.height }),
