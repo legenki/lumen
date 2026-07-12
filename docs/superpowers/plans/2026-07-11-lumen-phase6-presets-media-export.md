@@ -22,7 +22,7 @@
 **Files:**
 - Modify: `src/js/media.js`, `src/js/media.test.js`
 
-- [ ] **Step 1: Тесты** — добавить в `src/js/media.test.js`:
+- [x] **Step 1: Тесты** — добавить в `src/js/media.test.js`:
 
 ```js
 describe('add / remove', () => {
@@ -54,9 +54,9 @@ describe('add / remove', () => {
 });
 ```
 
-- [ ] **Step 2:** `npm test -- media` → FAIL (методов нет).
+- [x] **Step 2:** `npm test -- media` → FAIL (методов нет).
 
-- [ ] **Step 3:** дополнить `src/js/media.js` (совместимо с фазой 3):
+- [x] **Step 3:** дополнить `src/js/media.js` (совместимо с фазой 3):
 
 ```js
 export function createMediaRegistry(sources, loadImage, deps = {}) {
@@ -119,9 +119,9 @@ export function createMediaRegistry(sources, loadImage, deps = {}) {
 }
 ```
 
-- [ ] **Step 4:** `npm test` → PASS все; lint чистый; регистр 19/19.
+- [x] **Step 4:** `npm test` → PASS все; lint чистый; регистр 19/19.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/js/media.js src/js/media.test.js
@@ -138,9 +138,9 @@ git commit -m "feat: media registry add/remove for user assets"
 - Create: `src/js/mediaPanel.js`, `src/js/mediaPanel.test.js`
 - Modify: `src/js/main.js` (встройка секции Media), `src/js/controls.js` (LEFT_SECTIONS остаётся Canvas — Media строит свой panel-section отдельно, как Layers).
 
-- [ ] **Step 1: Вендоринг presetIO** — `cp /Users/andy/Documents/GitHub/divix/src/shared/utils/presetIO.js src/shared/utils/presetIO.js`; сверить `cmp` — байт-идентичен.
+- [x] **Step 1: Вендоринг presetIO** — `cp /Users/andy/Documents/GitHub/divix/src/shared/utils/presetIO.js src/shared/utils/presetIO.js`; сверить `cmp` — байт-идентичен.
 
-- [ ] **Step 2: `src/js/mediaPanel.js`** — секция Media в левой панели: список текущих user-медиа + кнопка «Add Image» + `<input type="file" accept="image/*" hidden>`. При выборе файла: создаётся `p.loadImage(URL.createObjectURL(file), (img) => media.add({ url: img.canvas?.toDataURL?.() ?? URL.createObjectURL(file), name: file.name, width: img.width, height: img.height, tex: img }))` — суть: p5 грузит blob как обычную картинку, из неё получаем ширину/высоту, передаём p5.Image как `tex` в реестр. Удаление слота — кнопкой «×» на строке; фильтруем только user-слоты (dust-in — DEFAULT_MEDIA не показываем в списке).
+- [x] **Step 2: `src/js/mediaPanel.js`** — секция Media в левой панели: список текущих user-медиа + кнопка «Add Image» + `<input type="file" accept="image/*" hidden>`. При выборе файла: создаётся `p.loadImage(URL.createObjectURL(file), (img) => media.add({ url: img.canvas?.toDataURL?.() ?? URL.createObjectURL(file), name: file.name, width: img.width, height: img.height, tex: img }))` — суть: p5 грузит blob как обычную картинку, из неё получаем ширину/высоту, передаём p5.Image как `tex` в реестр. Удаление слота — кнопкой «×» на строке; фильтруем только user-слоты (dust-in — DEFAULT_MEDIA не показываем в списке).
 
 ```js
 // src/js/mediaPanel.js — секция Media (левая панель): список user-слотов
@@ -222,9 +222,9 @@ export function buildMediaSection(root, { p, media, onChange }) {
 }
 ```
 
-- [ ] **Step 3: Тесты** (`src/js/mediaPanel.test.js`, `// @vitest-environment jsdom`): контейнер + fake media-реестр (реализующий keys/get/add/remove) + fake `p.loadImage` (сразу вызывает ok(img)); проверить: рендер пустого состояния; клик по «Add Image» триггерит input.click (стаббай через vi.fn); simulate change с fake File → media.add вызван с width/height из img; клик × вызывает media.remove и onChange; сборка «media.keys() returns non-user default keys, но список показывает только user».
+- [x] **Step 3: Тесты** (`src/js/mediaPanel.test.js`, `// @vitest-environment jsdom`): контейнер + fake media-реестр (реализующий keys/get/add/remove) + fake `p.loadImage` (сразу вызывает ok(img)); проверить: рендер пустого состояния; клик по «Add Image» триггерит input.click (стаббай через vi.fn); simulate change с fake File → media.add вызван с width/height из img; клик × вызывает media.remove и onChange; сборка «media.keys() returns non-user default keys, но список показывает только user».
 
-- [ ] **Step 4:** Встройка в `src/js/main.js` — после `buildLayersSection` до `openSections`:
+- [x] **Step 4:** Встройка в `src/js/main.js` — после `buildLayersSection` до `openSections`:
 
 ```js
 import { buildMediaSection } from './mediaPanel.js';
@@ -244,7 +244,7 @@ const mediaPanel = buildMediaSection(root, {
 
 `inspector.js` — media-select всегда строится из `media.keys()` (сейчас: `Object.keys(DEFAULT_MEDIA)`). Замена: `const options = Object.fromEntries(getMedia().keys().map((k) => [getMedia().get(k).name || k, k]));`. Пробрось `getMedia` в inspector.js через параметр `renderInspector(root, { state, getMedia, onParamChange })`.
 
-- [ ] **Step 5: CSS** — дописать в конец `src/css/style.css`:
+- [x] **Step 5: CSS** — дописать в конец `src/css/style.css`:
 
 ```css
 /* ============ Media panel rows ============ */
@@ -254,9 +254,9 @@ const mediaPanel = buildMediaSection(root, {
 .media-remove:hover { opacity: 1; color: #b91c1c; }
 ```
 
-- [ ] **Step 6:** `npm test` (все + mediaPanel) / lint / build — чистые.
+- [x] **Step 6:** `npm test` (все + mediaPanel) / lint / build — чистые.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/js/mediaPanel.js src/js/mediaPanel.test.js src/js/main.js src/js/app.js src/js/inspector.js src/shared/utils/presetIO.js src/css/style.css
@@ -272,7 +272,7 @@ git commit -m "feat: media panel for user image uploads"
 - Modify: `src/js/state.js` (+`userPresets`), `src/js/state.test.js`, `src/js/main.js`
 - Reuse: `src/shared/utils/presetIO.js` (Task 2)
 
-- [ ] **Step 1: state.userPresets** — TDD в `state.test.js`:
+- [x] **Step 1: state.userPresets** — TDD в `state.test.js`:
 
 ```js
   it('creates a userPresets array in persisted state', () => {
@@ -290,9 +290,9 @@ git commit -m "feat: media panel for user image uploads"
   });
 ```
 
-- [ ] **Step 2:** Изменения в `src/js/state.js`: `createDefaultState().userPresets = []`; `PERSISTED` теперь `['cnv', 'rec', 'stack', 'userPresets']`; `restoreState` — тот же mergeKnown-style но для `userPresets`: `if (Array.isArray(snap.userPresets)) state.userPresets = structuredClone(snap.userPresets); else state.userPresets = [];`.
+- [x] **Step 2:** Изменения в `src/js/state.js`: `createDefaultState().userPresets = []`; `PERSISTED` теперь `['cnv', 'rec', 'stack', 'userPresets']`; `restoreState` — тот же mergeKnown-style но для `userPresets`: `if (Array.isArray(snap.userPresets)) state.userPresets = structuredClone(snap.userPresets); else state.userPresets = [];`.
 
-- [ ] **Step 3: presetPanel** — секция Presets в левой панели (использует `buildPresetSection` из panelBuilder + отдельный блок «Save As Preset» для user). API:
+- [x] **Step 3: presetPanel** — секция Presets в левой панели (использует `buildPresetSection` из panelBuilder + отдельный блок «Save As Preset» для user). API:
 
 ```js
 // src/js/presetPanel.js
@@ -420,13 +420,13 @@ export function buildPresetPanelSection(root, { state, onApply }) {
 }
 ```
 
-- [ ] **Step 4: Тесты** (`src/js/presetPanel.test.js`, jsdom): `snapshotPreset(state, 'X').modules.length === state.stack.length` и т.д.; mask-инстанс сериализуется с `params.__maskMembers`; DOM-тест: клик Apply вызывает applyPresetToState (мок через vi.spyOn на модуль); Save As добавляет в state.userPresets; Import отвергает JSON с неизвестным модулем; Delete удаляет только с префиксом ★.
+- [x] **Step 4: Тесты** (`src/js/presetPanel.test.js`, jsdom): `snapshotPreset(state, 'X').modules.length === state.stack.length` и т.д.; mask-инстанс сериализуется с `params.__maskMembers`; DOM-тест: клик Apply вызывает applyPresetToState (мок через vi.spyOn на модуль); Save As добавляет в state.userPresets; Import отвергает JSON с неизвестным модулем; Delete удаляет только с префиксом ★.
 
-- [ ] **Step 5:** Встройка в main.js — ПЕРЕД buildLayersSection: `buildPresetPanelSection(root, { state, onApply() { api?.rebuildBuffer(); api?.scheduler.requestRender(); saveState(); refreshLayers(); refreshInspector(); } });`; API layersPanel из Task 4 фазы 4 надо экспортировать хэндл, чтобы `refreshLayers` работал (внести правку в `buildLayersSection` если ещё не возвращает refresh).
+- [x] **Step 5:** Встройка в main.js — ПЕРЕД buildLayersSection: `buildPresetPanelSection(root, { state, onApply() { api?.rebuildBuffer(); api?.scheduler.requestRender(); saveState(); refreshLayers(); refreshInspector(); } });`; API layersPanel из Task 4 фазы 4 надо экспортировать хэндл, чтобы `refreshLayers` работал (внести правку в `buildLayersSection` если ещё не возвращает refresh).
 
-- [ ] **Step 6:** `npm test / lint / build`; `openSections(root, [0, 1, 2, 3])` (Presets, Media, Canvas, Layers).
+- [x] **Step 6:** `npm test / lint / build`; `openSections(root, [0, 1, 2, 3])` (Presets, Media, Canvas, Layers).
 
-- [ ] **Step 7: Commit** `feat: preset panel with dropdown, save/import/export and user presets`.
+- [x] **Step 7: Commit** `feat: preset panel with dropdown, save/import/export and user presets`.
 
 ---
 
@@ -437,11 +437,11 @@ export function buildPresetPanelSection(root, { state, onApply }) {
 - Modify: `src/js/layersPanel.js` (обработка onReorder с расширенной сигнатурой), `src/js/layersPanel.test.js`
 - Test: `src/js/layersPanel.test.js` — новые кейсы
 
-- [ ] **Step 1: Расширение callback** — в LayerList: `onReorder(fromIndex, toIndex, mode)`, где `mode ∈ 'above' | 'below' | 'into'`. По умолчанию mode='above' (совместимость с фазой 4). Добавить второй drop-target внутри строки MASK (или её member): полоса-подсказка «drop into» — визуальный класс `.layer-row.is-drop-into` при dragover в верхней/нижней половине строки-маски.
+- [x] **Step 1: Расширение callback** — в LayerList: `onReorder(fromIndex, toIndex, mode)`, где `mode ∈ 'above' | 'below' | 'into'`. По умолчанию mode='above' (совместимость с фазой 4). Добавить второй drop-target внутри строки MASK (или её member): полоса-подсказка «drop into» — визуальный класс `.layer-row.is-drop-into` при dragover в верхней/нижней половине строки-маски.
 
 Простая реализация: строка становится drop-target с двумя зонами по вертикали: верхняя 40% → mode='above', нижняя 40% → 'below', средние 20% → 'into' (только если строка-mask). При `drop` вычисляем `mode` по event.offsetY/rect.height.
 
-- [ ] **Step 2: Юнит-тесты** в `layerList.test.js` (jsdom):
+- [x] **Step 2: Юнит-тесты** в `layerList.test.js` (jsdom):
 
 ```js
   it('emits onReorder with mode "into" when dropping in the middle of a mask row', () => {
@@ -463,7 +463,7 @@ export function buildPresetPanelSection(root, { state, onApply }) {
 
 Плюс: тест 'above'/'below' для не-mask строк — mode всегда 'above' или 'below' исходя из зоны.
 
-- [ ] **Step 3: Реализация в layerList.js** — заменить обработчик `drop`:
+- [x] **Step 3: Реализация в layerList.js** — заменить обработчик `drop`:
 
 ```js
 li.addEventListener('drop', (e) => {
@@ -482,7 +482,7 @@ li.addEventListener('drop', (e) => {
 
 Плюс визуальный overlay `.is-drop-into` при dragover в средней зоне маски: обновить обработчик dragover (пересчитывать класс).
 
-- [ ] **Step 4: layersPanel.js — обработка mode**:
+- [x] **Step 4: layersPanel.js — обработка mode**:
 
 ```js
 onReorder(from, to, mode) {
@@ -514,14 +514,14 @@ onReorder(from, to, mode) {
 },
 ```
 
-- [ ] **Step 5:** Тесты `layersPanel.test.js`:
+- [x] **Step 5:** Тесты `layersPanel.test.js`:
 1. mode 'into' на mask → src перемещается сразу после маски + добавляется в maskMembers;
 2. reorder mode 'above' переносит слой над членом маски → maskMembers пересчитываются (непрерывный блок);
 3. reorder pass-слоя ВНЕ группы → maskMembers маски укорачивается.
 
-- [ ] **Step 6:** `npm test / lint / build`; браузерный смоук: собери стек fillMedia → maskMedia → colorCorrection; перетащи colorCorrection на середину строки маски → отступ «↳» появился + бейдж 1. Перетащи его вниз в конец → отступ пропал, бейдж 0.
+- [x] **Step 6:** `npm test / lint / build`; браузерный смоук: собери стек fillMedia → maskMedia → colorCorrection; перетащи colorCorrection на середину строки маски → отступ «↳» появился + бейдж 1. Перетащи его вниз в конец → отступ пропал, бейдж 0.
 
-- [ ] **Step 7: Commit** `feat: drag layers into and out of MASK groups`.
+- [x] **Step 7: Commit** `feat: drag layers into and out of MASK groups`.
 
 ---
 
@@ -531,9 +531,9 @@ onReorder(from, to, mode) {
 - Copy: `src/shared/utils/lazyLibs.js`, `src/shared/utils/exportMedia.js` (из divix)
 - Modify: `src/js/main.js` (кнопка Export as MP4 в футере левой панели + длительность), `index.html` (кнопка+select seconds), `src/js/app.js` (getP)
 
-- [ ] **Step 1: Вендоринг** — `cp` двух файлов из divix; сверить `cmp` — идентичны. Инспект lazyLibs.js: он лениво загружает h264-mp4-encoder (~1.7MB, только на первом Export MP4).
+- [x] **Step 1: Вендоринг** — `cp` двух файлов из divix; сверить `cmp` — идентичны. Инспект lazyLibs.js: он лениво загружает h264-mp4-encoder (~1.7MB, только на первом Export MP4).
 
-- [ ] **Step 2: index.html** — в футере левой панели рядом с «Export as PNG» добавить группу:
+- [x] **Step 2: index.html** — в футере левой панели рядом с «Export as PNG» добавить группу:
 
 ```html
 <div class="btn-group" style="display:grid;grid-template-columns:1fr auto;gap:8px;">
@@ -546,7 +546,7 @@ onReorder(from, to, mode) {
 </div>
 ```
 
-- [ ] **Step 3: Кнопка в main.js**:
+- [x] **Step 3: Кнопка в main.js**:
 
 ```js
 import { exportMP4 } from '../shared/utils/exportMedia.js';
@@ -578,15 +578,15 @@ document.getElementById('lm-btn-save-mp4').onclick = async () => {
 };
 ```
 
-- [ ] **Step 4:** Замечание про density — у нас нет cnv.density.base (divix использует его); передаём getSize напрямую от buffer'а, так что density-branch в exportMedia.js не активируется. Проверить, что exportMedia.js работает без `cnv.density` (в реализации: используется только в fallback `!getSize`; у нас всегда `getSize`). Никаких изменений в exportMedia.js.
+- [x] **Step 4:** Замечание про density — у нас нет cnv.density.base (divix использует его); передаём getSize напрямую от buffer'а, так что density-branch в exportMedia.js не активируется. Проверить, что exportMedia.js работает без `cnv.density` (в реализации: используется только в fallback `!getSize`; у нас всегда `getSize`). Никаких изменений в exportMedia.js.
 
-- [ ] **Step 5: Тест** — `src/js/exportMedia.smoke.test.js` минимально: подмок `exportMP4` вызовет `p.redraw()` totalFrames раз, сохранит cnv.animation и восстановит; MP4-кодировщик — за пределами теста (не грузим h264-mp4-encoder). Задача теста — убедиться в правильной обвязке main.js без запуска реального кодирования; можно ограничиться тестом что `onDone` вернёт scheduler.setAnimating.
+- [x] **Step 5: Тест** — `src/js/exportMedia.smoke.test.js` минимально: подмок `exportMP4` вызовет `p.redraw()` totalFrames раз, сохранит cnv.animation и восстановит; MP4-кодировщик — за пределами теста (не грузим h264-mp4-encoder). Задача теста — убедиться в правильной обвязке main.js без запуска реального кодирования; можно ограничиться тестом что `onDone` вернёт scheduler.setAnimating.
 
-- [ ] **Step 6:** `npm test / lint / build` — чисто.
+- [x] **Step 6:** `npm test / lint / build` — чисто.
 
-- [ ] **Step 7: Ручной браузерный тест** (контроллер): применить пресет «Braindance Loop» (анимируемый); Export as MP4 4s → скачался .mp4, длительность 4с, размер >100KB, воспроизводится плеером. Прогресс отображается в export-status.
+- [x] **Step 7: Ручной браузерный тест** (контроллер): применить пресет «Braindance Loop» (анимируемый); Export as MP4 4s → скачался .mp4, длительность 4с, размер >100KB, воспроизводится плеером. Прогресс отображается в export-status.
 
-- [ ] **Step 8: Commit** `feat: MP4 video export via h264-mp4-encoder (vendored from divix)`.
+- [x] **Step 8: Commit** `feat: MP4 video export via h264-mp4-encoder (vendored from divix)`.
 
 ---
 
@@ -594,12 +594,12 @@ document.getElementById('lm-btn-save-mp4').onclick = async () => {
 
 Проверяется контроллером:
 
-- [ ] Presets: dropdown содержит 28 built-in; применение любого меняет рендер и стек; Save As сохраняет текущий стек, Export скачивает JSON, Import принимает как встроенные (v2), так и Lumen-снимки, Delete удаляет только пользовательские.
-- [ ] Media: Add Image принимает файл, добавляет в реестр; user-слоты видны в media-select у fillMedia/maskMedia/displaceTexture; после reload user-слоты пропадают (blob-URL — только сессия, это документировано).
-- [ ] Drag: слой в середину строки MASK → индент+бейдж; вниз из группы → сбрасывается.
-- [ ] MP4: экспорт «Braindance Loop» 4s → .mp4 файл скачался, размер сходится, консоль без критических ошибок.
-- [ ] `npm run lint && npm test && npm run build` — всё зелёное; страж referenceParity 19/19; «every control has a path».
-- [ ] Чекбоксы плана отмечены.
+- [x] Presets: dropdown содержит 28 built-in; применение любого меняет рендер и стек; Save As сохраняет текущий стек, Export скачивает JSON, Import принимает как встроенные (v2), так и Lumen-снимки, Delete удаляет только пользовательские.
+- [x] Media: Add Image принимает файл, добавляет в реестр; user-слоты видны в media-select у fillMedia/maskMedia/displaceTexture; после reload user-слоты пропадают (blob-URL — только сессия, это документировано).
+- [x] Drag: слой в середину строки MASK → индент+бейдж; вниз из группы → сбрасывается.
+- [x] MP4: экспорт «Braindance Loop» 4s → .mp4 файл скачался, размер сходится, консоль без критических ошибок.
+- [x] `npm run lint && npm test && npm run build` — всё зелёное; страж referenceParity 19/19; «every control has a path».
+- [x] Чекбоксы плана отмечены.
 
 ## Definition of Done (фаза 6)
 Все пункты Task 6 выполнены; тестов ≥ 280; персистенция user-пресетов работает; фаза Lumen формально завершается спекой (нет требований вне спецификации, кроме Optional: WebCodecs-энкодер вместо h264-mp4-encoder — вне скоупа).
