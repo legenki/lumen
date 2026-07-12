@@ -12,6 +12,7 @@ import { buildPresetPanelSection } from './presetPanel.js';
 import { renderInspector } from './inspector.js';
 import { PRESETS } from './presets.js';
 import { applyPresetToState } from './presetConvert.js';
+import { startMp4Export } from './mp4Export.js';
 
 const STORAGE_KEY = 'lumen-tool';
 
@@ -86,6 +87,8 @@ function setStatus(text) {
   }
 }
 
+const recVideo = { active: false, seconds: 4 };
+
 const panel = createPanelBuilder({ state, applyChange, refreshVisibility });
 
 function refreshInspector() {
@@ -136,6 +139,16 @@ function buildUI() {
   const pngBtn = document.getElementById('lm-btn-save-png');
   if (pngBtn) {
     pngBtn.onclick = () => applyChange({ id: 'lm-btn-save-png' });
+  }
+  const mp4Btn = document.getElementById('lm-btn-save-mp4');
+  if (mp4Btn) {
+    mp4Btn.onclick = () => startMp4Export(api, state, recVideo, setStatus);
+  }
+  const mp4Length = document.getElementById('lm-mp4-length');
+  if (mp4Length) {
+    mp4Length.onchange = (e) => {
+      recVideo.seconds = parseInt(e.target.value, 10) || 4;
+    };
   }
 }
 
