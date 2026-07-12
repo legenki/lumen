@@ -9,7 +9,15 @@ export function convertOldPreset(preset) {
     if (!def) throw new Error(`Unknown module in preset: ${m.name}`);
     const params = structuredClone(def.defaults);
     const src = { ...m.params };
-    const maskMembers = Array.isArray(src.__maskMembers) ? [...src.__maskMembers] : [];
+    // Members маски живут на УРОВНЕ ИНСТАНСА как `members` (формат live-Export
+    // из filtr-tool). В vendored reference/filtr/presets.js — тот же ключ.
+    // Обратная совместимость: старые Lumen-снимки клали params.__maskMembers.
+    const rawMembers = Array.isArray(m.members)
+      ? m.members
+      : Array.isArray(src.__maskMembers)
+        ? src.__maskMembers
+        : [];
+    const maskMembers = [...rawMembers];
     delete src.__maskMembers;
     deepAssign(params, src);
     const inst = {
@@ -25,6 +33,7 @@ export function convertOldPreset(preset) {
   const cnv = {};
   if (preset.main?.cnv?.ratio) cnv.ratio = preset.main.cnv.ratio;
   if (preset.main?.cnv?.scale?.value != null) cnv.scaleValue = preset.main.cnv.scale.value;
+  if (typeof preset.main?.cnv?.animation === 'boolean') cnv.animation = preset.main.cnv.animation;
   return { stack, cnv };
 }
 
@@ -34,6 +43,7 @@ export function applyPresetToState(state, preset) {
   state.stack.push(...stack);
   if (cnv.ratio) state.cnv.ratio = cnv.ratio;
   if (cnv.scaleValue != null) state.cnv.scale.value = cnv.scaleValue;
+  if (typeof cnv.animation === 'boolean') state.cnv.animation = cnv.animation;
   state.ui.selectedId = null;
 }
 
