@@ -6,14 +6,28 @@ import { createCenterPoint } from '../shared/ui/centerPoint.js';
 import { createGradientMapper } from '../shared/ui/gradientMapper.js';
 import { MODULES } from './modules/index.js';
 
-/** Видимость контрола по showIf: { path, notEquals? | equals? | in? }. */
+/**
+ * Видимость контрола по showIf. Поддерживаются формы:
+ *   { path|key, notEquals }              // val !== notEquals
+ *   { path|key, equals }                 // val === equals
+ *   { path|key, in: [...] }              // in.includes(val)
+ * И массив таких условий (все должны быть true — логика AND).
+ * Терпимо к отсутствующему path/key — считает контрол видимым (безопасный
+ * дефолт: лучше показать лишнее, чем уронить весь инспектор).
+ */
+function evalCondition(cond, params) {
+  const path = cond?.path ?? cond?.key;
+  if (!path) return true;
+  const val = getByPath(params, path);
+  if ('notEquals' in cond) return val !== cond.notEquals;
+  if ('equals' in cond) return val === cond.equals;
+  if (Array.isArray(cond.in)) return cond.in.includes(val);
+  return true;
+}
 export function isControlVisible(control, params) {
   if (!control.showIf) return true;
-  const val = getByPath(params, control.showIf.path);
-  if ('notEquals' in control.showIf) return val !== control.showIf.notEquals;
-  if ('equals' in control.showIf) return val === control.showIf.equals;
-  if (Array.isArray(control.showIf.in)) return control.showIf.in.includes(val);
-  return true;
+  const conds = Array.isArray(control.showIf) ? control.showIf : [control.showIf];
+  return conds.every((c) => evalCondition(c, params));
 }
 
 export function renderInspector(root, { state, getMedia, onParamChange }) {
