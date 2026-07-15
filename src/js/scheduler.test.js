@@ -26,14 +26,22 @@ describe('createRenderScheduler', () => {
     s.requestRender();
     expect(p.redraw).toHaveBeenCalledTimes(2);
   });
-  it('does not call redraw while animating (loop is running)', () => {
+  it('requestRender forces redraw even while animating (state change → repaint)', () => {
+    // Прошлый контракт «not called while animating» отвергнут: если вкладка
+    // неактивна или пришло изменение состояния между кадрами loop, надо
+    // немедленно перерисовать. Коалесцирование через pending — до consumeFrame.
     const p = fakeP5();
     const s = createRenderScheduler(p);
     s.init();
     s.setAnimating(true);
     expect(p.loop).toHaveBeenCalledOnce();
     s.requestRender();
-    expect(p.redraw).not.toHaveBeenCalled();
+    expect(p.redraw).toHaveBeenCalledTimes(1);
+    s.requestRender(); // pending guard
+    expect(p.redraw).toHaveBeenCalledTimes(1);
+    s.consumeFrame();
+    s.requestRender();
+    expect(p.redraw).toHaveBeenCalledTimes(2);
   });
   it('setAnimating(false) returns to noLoop', () => {
     const p = fakeP5();

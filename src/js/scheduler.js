@@ -11,7 +11,11 @@ export function createRenderScheduler(p) {
       p.noLoop();
     },
     requestRender() {
-      if (animating || pending) return;
+      // При animating=true p5 loop сам вызывает draw, но если вкладка
+      // неактивна или мы только что применили пресет — RAF может «спать».
+      // Форсируем немедленный redraw() в обоих режимах; коалесцируем
+      // повторные вызовы через `pending` до consumeFrame.
+      if (pending) return;
       pending = true;
       p.redraw();
     },
