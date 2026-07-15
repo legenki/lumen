@@ -3,6 +3,7 @@ import { radians, map } from './uniformUtils.js';
 import { SINE_MODES, FREQ_MODES, WRAP_MODES } from './optionTables.js';
 
 const U = {
+  u_srcRes: [0, 0],
   u_time: 0,
   u_mode: 0,
   u_amp: [0, 0],
@@ -73,6 +74,8 @@ export const displaceSine = {
   uniforms(p, env) {
     const amp = map(p.amp, 0, 100, 0, 0.25);
     const freq = p.freqMode === 0 ? p.freqLow : p.freqHigh;
+    U.u_srcRes[0] = env.width;
+    U.u_srcRes[1] = env.height;
     U.u_time = env.time;
     U.u_mode = p.sineMode;
     U.u_amp[0] = amp;

@@ -3,6 +3,7 @@ import { radians } from './uniformUtils.js';
 import { WRAP_MODES } from './optionTables.js';
 
 const U = {
+  u_srcRes: [0, 0],
   u_tileXY: [0, 0],
   u_ampXY: [0, 0],
   u_aspect: 0,
@@ -79,6 +80,8 @@ export const displaceCubic = {
     { type: 'select', path: 'wrapMode', label: 'Wrapping Mode', options: WRAP_MODES },
   ],
   uniforms(p, env) {
+    U.u_srcRes[0] = env.width;
+    U.u_srcRes[1] = env.height;
     U.u_tileXY[0] = p.tile.x;
     U.u_tileXY[1] = p.tile.y;
     U.u_ampXY[0] = p.amp.x;

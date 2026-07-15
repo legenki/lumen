@@ -3,6 +3,7 @@ import { radians, map } from './uniformUtils.js';
 import { FREQ_MODES, SIMPLEX_NOISE_MODES, WRAP_MODES } from './optionTables.js';
 
 const U = {
+  u_srcRes: [0, 0],
   u_time: 0,
   u_mode: 0,
   u_aspect: 0,
@@ -68,6 +69,8 @@ export const displaceSimplex = {
     const amp = map(p.amp, 0, 100, 0, 1);
     const freq = p.freqMode === 0 ? p.freqLow : p.freqHigh;
     const speed = map(p.speed, 0, 100, 0, 0.01) * env.totalFrames;
+    U.u_srcRes[0] = env.width;
+    U.u_srcRes[1] = env.height;
     U.u_time = env.time;
     U.u_mode = p.noiseMode;
     U.u_aspect = p.aspect;
