@@ -13,7 +13,8 @@ export function createGradientMapper({ container, label, getStops, onChange }) {
     <div class="gradient-strip"></div>
     <div class="gradient-markers"></div>
     <div class="gradient-editor" hidden>
-      <input type="color">
+      <span class="gradient-editor-label">Selected Stop</span>
+      <input type="color" title="Stop color">
       <input type="range" min="0" max="1" step="0.01" class="custom-slider" title="Alpha">
       <input type="number" min="0" max="1" step="0.01" class="grafema-num-input" title="Position">
       <button class="btn btn-secondary gradient-remove" title="Remove stop">✕</button>

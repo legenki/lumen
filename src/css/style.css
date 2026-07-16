@@ -954,17 +954,32 @@ body.theme-dark .sidebar {
   height: 18px; border-radius: 5px; cursor: copy;
   border: 1px solid rgba(0, 0, 0, 0.12); touch-action: none;
 }
-.gradient-markers { position: relative; height: 14px; margin-top: 2px; }
+.gradient-markers {
+  position: relative; height: 16px; margin: 2px 5px 0;
+  overflow: visible;
+}
 .gradient-marker {
-  position: absolute; top: 0; width: 10px; height: 12px;
+  position: absolute; top: 0; width: 10px; height: 14px;
   transform: translateX(-50%); cursor: ew-resize;
   border: 2px solid #555; border-radius: 3px;
+  transition: border-color 0.1s;
 }
+.gradient-marker:hover { border-color: #333; }
 .gradient-marker.is-selected { border-color: #000; box-shadow: 0 0 0 2px rgba(0,0,0,.15); }
-.gradient-editor { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
-.gradient-editor input[type="color"] { width: 34px; height: 24px; flex: none; }
-.gradient-editor input[type="range"] { flex: 1; }
-.gradient-editor input[type="number"] { width: 58px; flex: none; }
+.gradient-editor {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 6px; align-items: center;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+.gradient-editor-label {
+  font-size: 9px; color: var(--text-secondary);
+  grid-column: 1 / -1; font-weight: 500;
+}
+.gradient-editor input[type="color"] { width: 28px; height: 24px; flex: none; }
+.gradient-editor input[type="range"] { min-width: 0; }
+.gradient-editor input[type="number"] { width: 52px; flex: none; }
 .gradient-remove { flex: none; padding: 2px 8px; }
 
 /* ============ Interval control (min/max range pair) ============ */
