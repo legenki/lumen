@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body class="theme-light">
+  <script>
+    // Apply saved theme before first paint to avoid flash
+    (function() {
+      var saved = localStorage.getItem('lumen-theme');
+      var theme = saved || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+      document.body.className = 'theme-' + theme;
+    })();
+  </script>
   <div class="lumen-app">
 
     <aside class="sidebar lumen-sidebar-left">
@@ -23,6 +31,11 @@
           </select>
         </div>
         <div id="lm-export-status" class="export-status"></div>
+        <button id="lm-btn-theme" class="btn btn-secondary lm-theme-toggle" title="Toggle Theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </footer>
     </aside>
 

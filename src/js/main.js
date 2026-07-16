@@ -15,6 +15,14 @@ import { applyPresetToState } from './presetConvert.js';
 import { startMp4Export } from './mp4Export.js';
 
 const STORAGE_KEY = 'lumen-tool';
+const THEME_KEY = 'lumen-theme';
+
+function toggleTheme() {
+  const isDark = document.body.classList.contains('theme-dark');
+  const next = isDark ? 'light' : 'dark';
+  document.body.classList.replace(isDark ? 'theme-dark' : 'theme-light', `theme-${next}`);
+  localStorage.setItem(THEME_KEY, next);
+}
 
 registerSW({
   onOfflineReady() {
@@ -150,6 +158,8 @@ function buildUI() {
       recVideo.seconds = parseInt(e.target.value, 10) || 4;
     };
   }
+  const themeBtn = document.getElementById('lm-btn-theme');
+  if (themeBtn) themeBtn.onclick = toggleTheme;
 }
 
 const container = document.getElementById('lumen-canvas');
