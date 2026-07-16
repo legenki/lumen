@@ -1,6 +1,7 @@
 // Транскрипция пасса blurGaussian (bundle-pretty.js:47150-47166).
 // Модуль с run()-хуком: вызывает ctx.blur.gaussian с рассчитанной sigma.
 import { map, EASE } from './uniformUtils.js';
+import { BLEND_MODES } from './optionTables.js';
 
 export function gaussianSigma(p) {
   // sigma = map(EASE.quadIn(p.radius/100), 0,1, 0, 0.1)
@@ -25,15 +26,7 @@ export const blurGaussian = {
       type: 'select',
       path: 'blendMode',
       label: 'Blending Mode',
-      options: [
-        { value: 0, label: 'Normal' },
-        { value: 1, label: 'Add' },
-        { value: 2, label: 'Multiply' },
-        { value: 3, label: 'Screen' },
-        { value: 4, label: 'Overlay' },
-        { value: 5, label: 'Darken' },
-        { value: 6, label: 'Lighten' },
-      ],
+      options: BLEND_MODES,
     },
     {
       type: 'slider',

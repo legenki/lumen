@@ -2,6 +2,7 @@
 // Модуль с run()-хуком: использует blueNoise текстуру (env.textures.blueNoise).
 // Если текстура не загружена → пасс прозрачен (возврат inputTex).
 import { map, EASE } from './uniformUtils.js';
+import { BLEND_MODES } from './optionTables.js';
 
 export function noiseUniforms(p, env) {
   return {
@@ -32,15 +33,7 @@ export const blurNoise = {
       type: 'select',
       path: 'blendMode',
       label: 'Blending Mode',
-      options: [
-        { value: 0, label: 'Normal' },
-        { value: 1, label: 'Add' },
-        { value: 2, label: 'Multiply' },
-        { value: 3, label: 'Screen' },
-        { value: 4, label: 'Overlay' },
-        { value: 5, label: 'Darken' },
-        { value: 6, label: 'Lighten' },
-      ],
+      options: BLEND_MODES,
     },
     {
       type: 'slider',

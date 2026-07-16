@@ -16,6 +16,23 @@ export function falloffFocusForMode(p) {
   return [p.falloffFocus2D.x + 0.5, p.falloffFocus2D.y + 0.5];
 }
 
+const U = {
+  u_src: 0,
+  u_aspect: 0,
+  u_maskUse: false,
+  u_mask: 0,
+  u_mix: 0,
+  u_strength: 0,
+  u_gridCells: [0, 0],
+  u_gridScale: 0,
+  u_gridAngle: 0,
+  u_blendEdge: 0,
+  u_falloffMode: 0,
+  u_falloffRange: [0, 0],
+  u_falloffFocus: [0, 0],
+  u_wrapMode: 0,
+};
+
 export const warpGrid = {
   key: 'warpGrid',
   label: 'Warp Grid',
@@ -73,7 +90,7 @@ export const warpGrid = {
       min: 2,
       max: 128,
       step: 1,
-      showIf: { key: 'gridMode', notEquals: 2 },
+      showIf: { path: 'gridMode', notEquals: 2 },
     },
     {
       type: 'centerPoint',
@@ -83,7 +100,7 @@ export const warpGrid = {
         x: { min: 2, max: 128, step: 1 },
         y: { min: 2, max: 128, step: 1 },
       },
-      showIf: { key: 'gridMode', equals: 2 },
+      showIf: { path: 'gridMode', equals: 2 },
     },
     {
       type: 'slider',
@@ -114,7 +131,7 @@ export const warpGrid = {
       min: 0,
       max: 1,
       step: 0.01,
-      showIf: { key: 'falloffMode', notEquals: 0 },
+      showIf: { path: 'falloffMode', notEquals: 0 },
     },
     {
       type: 'slider',
@@ -151,24 +168,22 @@ export const warpGrid = {
   gridCellsForMode,
   falloffFocusForMode,
   uniforms(p, env) {
-    const w = env.width;
-    const h = env.height;
-
-    return {
-      u_src: 0, // texunit
-      u_aspect: w / h,
-      u_maskUse: false,
-      u_mask: 0, // placeholder
-      u_mix: p.mix,
-      u_strength: EASE.sineIn(p.strength),
-      u_gridCells: gridCellsForMode(p),
-      u_gridScale: p.gridScale,
-      u_gridAngle: radians(p.gridAngle),
-      u_blendEdge: p.cellFeather,
-      u_falloffMode: p.falloffMode,
-      u_falloffRange: [p.falloffRange.min, p.falloffRange.max],
-      u_falloffFocus: falloffFocusForMode(p),
-      u_wrapMode: p.wrapMode,
-    };
+    U.u_aspect = env.width / env.height;
+    U.u_mix = p.mix;
+    U.u_strength = EASE.sineIn(p.strength);
+    const cells = gridCellsForMode(p);
+    U.u_gridCells[0] = cells[0];
+    U.u_gridCells[1] = cells[1];
+    U.u_gridScale = p.gridScale;
+    U.u_gridAngle = radians(p.gridAngle);
+    U.u_blendEdge = p.cellFeather;
+    U.u_falloffMode = p.falloffMode;
+    U.u_falloffRange[0] = p.falloffRange.min;
+    U.u_falloffRange[1] = p.falloffRange.max;
+    const focus = falloffFocusForMode(p);
+    U.u_falloffFocus[0] = focus[0];
+    U.u_falloffFocus[1] = focus[1];
+    U.u_wrapMode = p.wrapMode;
+    return U;
   },
 };

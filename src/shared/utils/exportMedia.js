@@ -2,25 +2,6 @@ import { ensureHME } from './lazyLibs.js';
 import { timestamp } from './datetime.js';
 
 /**
- * Saves a canvas as PNG. saveCanvas() only exists on the main p5 instance —
- * a p5.Graphics buffer has no such method of its own — so when exporting a
- * composited offscreen buffer, pass the main instance as `p` and the buffer
- * as `source`; p5 reads `source.canvas` internally.
- * @param {object} p        p5 instance
- * @param {string} prefix   filename prefix, e.g. 'copo'
- * @param {object} [source] p5.Graphics buffer to save instead of the main canvas
- */
-export function exportPNG(p, prefix, source) {
-  if (source) {
-    // saveCanvas() only special-cases HTMLCanvasElement / p5.Element — a
-    // p5.Graphics instance falls through to neither, so pass its raw canvas.
-    p.saveCanvas(source.canvas, `${prefix}-${timestamp()}`, 'png');
-  } else {
-    p.saveCanvas(`${prefix}-${timestamp()}`, 'png');
-  }
-}
-
-/**
  * Encodes and downloads an MP4 from a sequence of frames rendered by drawFrame.
  *
  * @param {object} opts

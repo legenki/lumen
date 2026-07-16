@@ -1,6 +1,7 @@
 // Транскрипция пасса blurMotion (bundle-pretty.js:47167-47181).
 // Модуль с run()-хуком: вызывает ctx.blur.motion с рассчитанной sigma.
 import { map, EASE } from './uniformUtils.js';
+import { BLEND_MODES } from './optionTables.js';
 
 export function motionSigma(p) {
   // sigma = map(EASE.sineIn(p.radius/100), 0,1, 0, 0.2)
@@ -22,15 +23,7 @@ export const blurMotion = {
       type: 'select',
       path: 'blendMode',
       label: 'Blending Mode',
-      options: [
-        { value: 0, label: 'Normal' },
-        { value: 1, label: 'Add' },
-        { value: 2, label: 'Multiply' },
-        { value: 3, label: 'Screen' },
-        { value: 4, label: 'Overlay' },
-        { value: 5, label: 'Darken' },
-        { value: 6, label: 'Lighten' },
-      ],
+      options: BLEND_MODES,
     },
     {
       type: 'slider',

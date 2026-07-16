@@ -32,24 +32,17 @@ export function openPresetFile(onLoad, onError) {
   });
 }
 
-/** Opens a file picker for an image; the data-URL string goes to onLoad. */
-export function openImageFile(onLoad) {
-  pickFile('image/*', (file) => {
-    const reader = new FileReader();
-    reader.onload = () => onLoad(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
 function pickFile(accept, onFile) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = accept;
   input.style.display = 'none';
-  document.body.appendChild(input);
+  const cleanup = () => { if (input.parentNode) input.parentNode.removeChild(input); };
   input.addEventListener('change', () => {
     if (input.files && input.files[0]) onFile(input.files[0]);
-    document.body.removeChild(input);
+    cleanup();
   });
+  window.addEventListener('focus', () => setTimeout(cleanup, 300), { once: true });
+  document.body.appendChild(input);
   input.click();
 }

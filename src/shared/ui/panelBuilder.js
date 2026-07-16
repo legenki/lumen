@@ -231,6 +231,31 @@ export function createPanelBuilder({
         });
       }
 
+    } else if (ctrl.type === 'interval') {
+      const obj = val ?? { min: ctrl.min, max: ctrl.max };
+      const header = el('div', { className: 'parameter-header' },
+        el('span', { className: 'parameter-label', textContent: ctrl.label }),
+      );
+      row.appendChild(header);
+      const wrap = el('div', { className: 'interval-row' });
+      const minSlide = el('input', { type: 'range', class: 'custom-slider', min: ctrl.min, max: ctrl.max, step: ctrl.step, value: obj.min });
+      const maxSlide = el('input', { type: 'range', class: 'custom-slider', min: ctrl.min, max: ctrl.max, step: ctrl.step, value: obj.max });
+      const minNum = el('input', { type: 'number', class: 'num-input', min: ctrl.min, max: ctrl.max, step: ctrl.step, value: obj.min, style: 'width:48px;' });
+      const maxNum = el('input', { type: 'number', class: 'num-input', min: ctrl.min, max: ctrl.max, step: ctrl.step, value: obj.max, style: 'width:48px;' });
+      wrap.appendChild(minNum);
+      wrap.appendChild(minSlide);
+      wrap.appendChild(maxSlide);
+      wrap.appendChild(maxNum);
+      row.appendChild(wrap);
+      const sync = () => {
+        setByPath(state, ctrl.path, { min: parseFloat(minSlide.value), max: parseFloat(maxSlide.value) });
+        applyChange(ctrl);
+      };
+      minSlide.addEventListener('input', (e) => { minNum.value = e.target.value; sync(); });
+      maxSlide.addEventListener('input', (e) => { maxNum.value = e.target.value; sync(); });
+      minNum.addEventListener('input', (e) => { minSlide.value = e.target.value; sync(); });
+      maxNum.addEventListener('input', (e) => { maxSlide.value = e.target.value; sync(); });
+
     } else if (ctrl.type === 'text') {
       const header = el('div', { className: 'parameter-header' },
         el('span', { className: 'parameter-label', textContent: ctrl.label }),
@@ -420,52 +445,6 @@ export function buildPresetSection(root, { idPrefix, presets, proPresets = {}, i
   }
 
   const content = el('div', { className: 'section-content' }, ...contentChildren);
-  sec.appendChild(h2);
-  sec.appendChild(content);
-  root.appendChild(sec);
-}
-
-/** Font section: List (catalog) vs Custom (upload) toggle + font picker. */
-export function buildFontSection(root, { idPrefix, fontList, font, accept }) {
-  const sec = el('section', { className: 'panel-section' });
-
-  const h2 = el('h2', { className: 'section-title' },
-    el('span', { textContent: 'Font' }),
-    chevronSVG(),
-  );
-
-  const modeSelector = el('div', { className: 'mode-selector', id: `${idPrefix}-font-mode`, style: 'margin-bottom:12px;' });
-  for (const mode of ['list', 'custom']) {
-    const btn = el('button', { className: `mode-btn${font.mode === mode ? ' active' : ''}`, 'data-mode': mode },
-      el('span', { textContent: mode === 'list' ? 'List' : 'Custom' }),
-    );
-    modeSelector.appendChild(btn);
-  }
-
-  const fontSelect = el('select', { className: 'grafema-select', id: `${idPrefix}-font-list` });
-  for (const f of fontList) {
-    const opt = el('option', { value: f }, f);
-    if (f === font.name) opt.selected = true;
-    fontSelect.appendChild(opt);
-  }
-  const fontListRow = el('div', { className: 'parameter-row', id: `${idPrefix}-font-list-row` },
-    el('div', { className: 'parameter-header' }, el('span', { className: 'parameter-label', textContent: 'Choose Font' })),
-    fontSelect,
-  );
-
-  const uploadBtn = el('button', { id: `${idPrefix}-font-upload`, className: 'btn btn-secondary', style: 'width:100%;', textContent: 'Load Local Font' });
-  const customName = el('span', { className: 'color-code', id: `${idPrefix}-font-custom-name`, style: 'display:block; margin-top:6px;', textContent: font.customName || 'no file' });
-  const fontCustomRow = el('div', { className: 'parameter-row', id: `${idPrefix}-font-custom-row` }, uploadBtn, customName);
-
-  const fileInput = el('input', { type: 'file', id: `${idPrefix}-font-input`, accept, style: 'display:none;' });
-
-  const content = el('div', { className: 'section-content' },
-    modeSelector,
-    fontListRow,
-    fontCustomRow,
-    fileInput,
-  );
-
   sec.appendChild(h2);
   sec.appendChild(content);
   root.appendChild(sec);

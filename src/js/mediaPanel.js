@@ -44,8 +44,8 @@ export function buildMediaSection(root, { p, media, onChange }) {
   const overlay = document.createElement('div');
   overlay.className = 'media-modal-overlay';
   overlay.innerHTML = `
-    <div class="media-modal">
-      <h2 class="media-modal-title">Media Pool</h2>
+    <div class="media-modal" role="dialog" aria-modal="true" aria-labelledby="lm-media-modal-title">
+      <h2 class="media-modal-title" id="lm-media-modal-title">Media Pool</h2>
       <div class="media-modal-grid" id="lm-media-grid"></div>
       <div class="media-modal-upload">
         <p class="media-modal-hint">Upload or drag media files here to add them to the pool (.png, .jpg, .gif, .webp, .mp4, .webm, .mov)</p>
@@ -71,13 +71,30 @@ export function buildMediaSection(root, { p, media, onChange }) {
     for (const f of files) loadOne(f);
   });
 
+  const modal = overlay.querySelector('.media-modal');
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'Tab') {
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+
   function open() {
     refreshGrid();
     overlay.classList.add('active');
+    document.addEventListener('keydown', onKeyDown);
+    uploadBtn.focus();
   }
 
   function close() {
     overlay.classList.remove('active');
+    document.removeEventListener('keydown', onKeyDown);
   }
 
   function refreshGrid() {

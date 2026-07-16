@@ -35,24 +35,3 @@ export async function ensureHME() {
   return window.HME;
 }
 
-/**
- * Heavyweight vendor globals loaded per workspace on first activation
- * (see the workspace registry in src/js/main.js) instead of blocking the
- * initial page load. All sketch code touches these globals no earlier than
- * p5 setup(), which runs after the loader promise resolves.
- */
-const VENDOR_LIBS = {
-  paper: 'lib/vendor/paper-full.min.js',
-  color: 'lib/vendor/color.global.min.js',
-};
-
-/**
- * Loads the named vendor libraries (keys of VENDOR_LIBS) in parallel.
- * @param {...keyof VENDOR_LIBS} names
- * @returns {Promise<void[]>}
- */
-export function ensureVendorLibs(...names) {
-  return Promise.all(
-    names.map((name) => loadScript(`${import.meta.env.BASE_URL}${VENDOR_LIBS[name]}`))
-  );
-}
