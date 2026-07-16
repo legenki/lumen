@@ -88,7 +88,7 @@ export async function exportMP4({
   encoder.frameRate = rec.frameRate;
   // rec.quality (0-100), where 100 is best quality (quantization parameter 10) and 0 is worst (51)
   encoder.quantizationParameter = Math.round(p.map(rec.quality ?? 80, 0, 100, 51, 10));
-  encoder.groupOfPictures = 1;
+  encoder.groupOfPictures = 10;
   encoder.initialize();
 
   const totalFrames = recVideo.seconds * rec.frameRate;
@@ -104,8 +104,10 @@ export async function exportMP4({
       if (rec) rec.frame = frameNum;
       if (beforeDraw) await beforeDraw(frameNum);
       drawComposite();
-      copyCtx.clearRect(0, 0, w, h);
       const targetCanvas = getCanvas ? getCanvas() : p.canvas;
+      const gl = targetCanvas.getContext('webgl2') || targetCanvas.getContext('webgl');
+      if (gl) gl.finish();
+      copyCtx.clearRect(0, 0, w, h);
       copyCtx.drawImage(targetCanvas, 0, 0, w, h);
       encoder.addFrameRgba(copyCtx.getImageData(0, 0, w, h).data);
       if (f % 10 === 0) setStatus(`Encoding ${f}/${totalFrames}`);

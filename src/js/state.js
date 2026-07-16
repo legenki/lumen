@@ -43,7 +43,7 @@ export function createDefaultState() {
     // frameCount — runtime-курсор кадра, zip — до задачи рекордера в фазе 6.
     rec: {
       preset: 'mp4-web',
-      frameRate: 60,
+      frameRate: 30,
       length: { value: 10, min: 1, max: 60 },
       quality: 0.95,
       bitrate: 50,

@@ -10,7 +10,7 @@ describe('state defaults', () => {
     expect(s.cnv.ratio).toBe('1:1');
     expect(s.cnv.animation).toBe(true);
     expect(s.cnv.scale).toEqual({ value: 2.5, min: 2, max: 8, step: 0.25 });
-    expect(s.rec.frameRate).toBe(60);
+    expect(s.rec.frameRate).toBe(30);
     expect(s.rec.length.value).toBe(10);
     expect(s.stack).toEqual([]);
     expect(s.ui.selectedId).toBeNull();

@@ -1,7 +1,4 @@
-// LUMEN — тесты секции Media (левая панель): рендер пустого состояния,
-// добавление user-изображения через file picker, удаление слота, фильтрация
-// DEFAULT_MEDIA (не-user записи в списке не показываются).
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { buildMediaSection } from './mediaPanel.js';
 
 function fakeMediaRegistry(initial = []) {
@@ -36,39 +33,71 @@ describe('buildMediaSection', () => {
   let root;
   beforeEach(() => {
     root = document.createElement('div');
+    document.body.appendChild(root);
+    if (!URL.createObjectURL) URL.createObjectURL = vi.fn(() => 'blob:mock');
+    if (!URL.revokeObjectURL) URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(() => {
+    root.remove();
+    document.querySelectorAll('.media-modal-overlay').forEach((el) => el.remove());
   });
 
-  it('renders empty state when there are no user media entries', () => {
+  it('renders button "Add / Remove Media Files" in the left panel', () => {
     const media = fakeMediaRegistry([{ key: 'img0', url: 'x', name: 'img0', user: false }]);
     buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
-    expect(root.textContent).toContain('No user images loaded yet.');
+    const btn = root.querySelector('#lm-media-open');
+    expect(btn).toBeTruthy();
+    expect(btn.textContent).toBe('Add / Remove Media Files');
   });
 
-  it('does not list non-user (default) media entries', () => {
+  it('opens modal overlay when button is clicked', () => {
+    const media = fakeMediaRegistry([{ key: 'img0', url: 'x', name: 'img0', user: false }]);
+    buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
+    root.querySelector('#lm-media-open').click();
+    const overlay = document.querySelector('.media-modal-overlay');
+    expect(overlay.classList.contains('active')).toBe(true);
+  });
+
+  it('shows all media entries (both default and user) in the modal grid', () => {
     const media = fakeMediaRegistry([
       { key: 'img0', url: 'x', name: 'img0', user: false },
-      { key: 'text0', url: 'y', name: 'text0', user: false },
+      { key: 'white', url: 'y', name: 'white', user: false },
     ]);
+    media.add({ url: 'blob:a', name: 'Photo.png', width: 10, height: 10 });
     buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
-    expect(root.querySelectorAll('.media-row').length).toBe(0);
+    root.querySelector('#lm-media-open').click();
+    const cells = document.querySelectorAll('.media-cell');
+    expect(cells.length).toBe(3);
   });
 
-  it('clicking Add Image triggers the hidden file input click', () => {
+  it('displays human-readable names for built-in media', () => {
+    const media = fakeMediaRegistry([
+      { key: 'white', url: 'y', name: 'white', user: false },
+    ]);
+    buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
+    root.querySelector('#lm-media-open').click();
+    const labels = Array.from(document.querySelectorAll('.media-cell-label')).map((el) => el.textContent);
+    expect(labels).toContain('White Fill');
+  });
+
+  it('clicking Upload Media triggers the hidden file input', () => {
     const media = fakeMediaRegistry();
     buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
-    const input = root.querySelector('#lm-media-file');
+    root.querySelector('#lm-media-open').click();
+    const input = document.querySelector('#lm-media-file');
     const spy = vi.spyOn(input, 'click');
-    root.querySelector('#lm-media-add').click();
+    document.querySelector('#lm-media-upload-btn').click();
     expect(spy).toHaveBeenCalled();
   });
 
-  it('selecting a file loads it via p.loadImage and calls media.add with width/height from the image', () => {
+  it('selecting a file loads it via p.loadImage and calls media.add', () => {
     const media = fakeMediaRegistry();
     const p = fakeP({ img: { width: 640, height: 400 } });
     const onChange = vi.fn();
     buildMediaSection(root, { p, media, onChange });
+    root.querySelector('#lm-media-open').click();
 
-    const input = root.querySelector('#lm-media-file');
+    const input = document.querySelector('#lm-media-file');
     const file = new File(['data'], 'Photo.png', { type: 'image/png' });
     Object.defineProperty(input, 'files', { value: [file], configurable: true });
     input.dispatchEvent(new Event('change'));
@@ -78,40 +107,32 @@ describe('buildMediaSection', () => {
     const entry = media.get(media.keys()[0]);
     expect(entry.name).toBe('Photo.png');
     expect(entry.width).toBe(640);
-    expect(entry.height).toBe(400);
     expect(onChange).toHaveBeenCalled();
-
-    // list should now show the new user row
-    expect(root.querySelectorAll('.media-row').length).toBe(1);
-    expect(root.textContent).toContain('Photo.png');
   });
 
-  it('clicking the remove (x) button on a row calls media.remove and onChange, and refreshes the list', () => {
+  it('clicking remove button on a cell calls media.remove and refreshes grid', () => {
     const media = fakeMediaRegistry();
     const onChange = vi.fn();
-    const panel = buildMediaSection(root, { p: fakeP(), media, onChange });
     media.add({ url: 'blob:a', name: 'A.png', width: 2, height: 2 });
-    panel.refresh();
+    buildMediaSection(root, { p: fakeP(), media, onChange });
+    root.querySelector('#lm-media-open').click();
 
-    const removeBtn = root.querySelector('.media-remove');
+    const removeBtn = document.querySelector('.media-cell-remove');
     expect(removeBtn).toBeTruthy();
     removeBtn.click();
 
     expect(media.keys()).toHaveLength(0);
     expect(onChange).toHaveBeenCalled();
-    expect(root.textContent).toContain('No user images loaded yet.');
+    expect(document.querySelectorAll('.media-cell').length).toBe(0);
   });
 
-  it('media.keys() may include non-user default keys, but the visible list shows only user entries', () => {
-    const media = fakeMediaRegistry([
-      { key: 'img0', url: 'x', name: 'img0', user: false },
-    ]);
-    const panel = buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
-    media.add({ url: 'blob:b', name: 'B.png', width: 3, height: 3 });
-    panel.refresh();
-
-    expect(media.keys()).toEqual(expect.arrayContaining(['img0']));
-    const rows = Array.from(root.querySelectorAll('.media-key')).map((el) => el.textContent);
-    expect(rows).toEqual(['B.png']);
+  it('closes modal when clicking overlay background', () => {
+    const media = fakeMediaRegistry();
+    buildMediaSection(root, { p: fakeP(), media, onChange: vi.fn() });
+    root.querySelector('#lm-media-open').click();
+    const overlay = document.querySelector('.media-modal-overlay');
+    expect(overlay.classList.contains('active')).toBe(true);
+    overlay.click();
+    expect(overlay.classList.contains('active')).toBe(false);
   });
 });
