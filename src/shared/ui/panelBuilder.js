@@ -133,6 +133,12 @@ export function createPanelBuilder({
         num.value = n;
         setByPath(state, ctrl.path, n);
         if (onSliderInput) onSliderInput(ctrl, n);
+        if (!ctrl.deferRegen) applyChange(ctrl);
+      });
+      slide.addEventListener('change', (e) => {
+        if (!ctrl.deferRegen) return;
+        const n = parseFloat(e.target.value);
+        setByPath(state, ctrl.path, n);
         applyChange(ctrl);
       });
       num.addEventListener('input', (e) => {

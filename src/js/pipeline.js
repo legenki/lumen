@@ -54,7 +54,7 @@ const FRAG_SOURCES = {
 // и есть только у p5-инстансов; p5.Graphics их НЕ наследует (p5 2.2.3), поэтому
 // glc.HALF_FLOAT === undefined и p5 молча откатился бы к UNSIGNED_BYTE.
 export function createPipeline(glc, p) {
-  const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: true };
+  const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: false };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
   let ping = 0;
@@ -71,7 +71,7 @@ export function createPipeline(glc, p) {
   // FBO-пул именованных буферов (маски, временные цели модулей с run()).
   const pool = {};
   function getBuffer(name, opts = {}) {
-    const defaults = { width: glc.width, height: glc.height, format: p.HALF_FLOAT, depth: false, antialias: true };
+    const defaults = { width: glc.width, height: glc.height, format: p.HALF_FLOAT, depth: false, antialias: false };
     const merged = { ...defaults, ...opts };
     const existing = pool[name];
     if (existing) {

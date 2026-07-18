@@ -17,6 +17,7 @@ export const lumaBands = {
   key: 'lumaBands',
   label: 'Luma Bands',
   type: 'pass',
+  animated: true,
   defaults: {
     blendMode: 0,
     mix: 1,

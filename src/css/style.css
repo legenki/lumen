@@ -273,7 +273,7 @@ body.theme-dark .lumen-sidebar-left {
   font-weight: 500;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -371,7 +371,7 @@ body.theme-dark .mode-btn.active {
   border-radius: 4px;
   padding: 0 6px;
   height: 20px;
-  transition: all 0.1s ease;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
 }
 
 .num-input-wrapper:hover {
@@ -417,7 +417,7 @@ body.theme-dark .mode-btn.active {
   font-size: 11px;
   padding: 5px 8px;
   outline: none;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .grafema-text-input:hover {
   background: var(--bg-input-focus);
@@ -444,7 +444,7 @@ body.theme-dark .mode-btn.active {
   background-repeat: no-repeat;
   background-position: right 8px center;
   padding-right: 24px;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .grafema-select:hover {
@@ -534,7 +534,7 @@ select {
   height: 28px;
   width: 100%;
   outline: none;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 input[type='text']:hover,
@@ -563,7 +563,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   width: 100%;
   box-shadow: none;
   padding: 0 12px;
@@ -649,7 +649,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   box-shadow: none;
 }
 
@@ -686,7 +686,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 
 .checkbox-container:hover .custom-checkbox {
@@ -904,6 +904,13 @@ body.theme-dark .sidebar {
   height: 100vh !important;
   z-index: 1;
   overflow: hidden;
+  background-color: #e0e0e0;
+  background-image: repeating-conic-gradient(#cccccc 0% 25%, #e8e8e8 0% 50%);
+  background-size: 20px 20px;
+}
+body.theme-dark .lumen-canvas-viewport {
+  background-color: #2a2a2a;
+  background-image: repeating-conic-gradient(#222222 0% 25%, #333333 0% 50%);
 }
 .lumen-canvas-viewport canvas { width: 100vw !important; height: 100vh !important; }
 

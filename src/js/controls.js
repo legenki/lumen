@@ -12,7 +12,7 @@ export const LEFT_SECTIONS = [
       },
       {
         type: 'slider', id: 'lm-cnv-scale', label: 'Resolution Scale',
-        path: 'cnv.scale.value', min: 2, max: 8, step: 0.25, regen: 'buffer',
+        path: 'cnv.scale.value', min: 2, max: 8, step: 0.25, regen: 'buffer', deferRegen: true,
       },
       {
         type: 'check', id: 'lm-cnv-animation', label: 'Animation',

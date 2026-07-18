@@ -151,7 +151,6 @@ function buildMembersSection(root, { state, inst, onParamChange }) {
       checkbox.addEventListener('change', (e) => {
         if (e.target.checked) {
           if (!inst.maskMembers.includes(cand.id)) inst.maskMembers.push(cand.id);
-          // порядок членов — по порядку стека
           inst.maskMembers.sort(
             (a, b) => state.stack.findIndex((m) => m.id === a) - state.stack.findIndex((m) => m.id === b),
           );
@@ -159,7 +158,7 @@ function buildMembersSection(root, { state, inst, onParamChange }) {
           const i = inst.maskMembers.indexOf(cand.id);
           if (i >= 0) inst.maskMembers.splice(i, 1);
         }
-        onParamChange();
+        onParamChange({ refreshLayers: true });
       });
       content.appendChild(row);
     }

@@ -6,15 +6,14 @@ import { computeViewport } from './viewport.js';
 import { createRenderScheduler } from './scheduler.js';
 import { restoreGlModes } from './graphicsModes.js';
 import { createPipeline } from './pipeline.js';
+import { MODULES } from './modules/index.js';
 import { createMediaRegistry } from './media.js';
 import { DEFAULT_MEDIA, BLUE_NOISE_URL } from './assets.js';
-import { createAlphaImage } from '../shared/utils/alphaCheckerboard.js';
 
 export function lumenSketch(p, { state, onReady }) {
   let glc = null; // WEBGL-графика пайплайна
   let pipeline = null;
   let media = null;
-  let alphaImg = null;
   const scheduler = createRenderScheduler(p);
   const vp = {}; // zero-alloc: переиспользуемый viewport-объект
   const env = {
@@ -39,11 +38,9 @@ export function lumenSketch(p, { state, onReady }) {
       pipeline = createPipeline(glc, p);
     } else if (glc.width !== width || glc.height !== height) {
       glc.resizeCanvas(width, height);
-      restoreGlModes(glc); // FBO p5 автоследуют размеру канваса
-      pipeline.resizeAll(); // дефолтные fbo p5 авторесайзятся; пул/blur — вручную
+      restoreGlModes(glc);
+      pipeline.resizeAll();
     }
-    if (alphaImg) alphaImg.remove();
-    alphaImg = createAlphaImage(p, width, height, 1);
     state.runtime.buffer = glc;
   }
 
@@ -63,14 +60,17 @@ export function lumenSketch(p, { state, onReady }) {
     );
     rebuildBuffer();
     scheduler.init();
-    scheduler.setAnimating(state.cnv.animation);
     scheduler.requestRender();
     if (onReady) {
       onReady({
         scheduler,
         rebuildBuffer,
         getBuffer: () => glc,
-        syncAnimation: () => scheduler.setAnimating(state.cnv.animation),
+        syncAnimation() {
+          const wantsAnim = state.cnv.animation &&
+            state.stack.some((inst) => inst.enabled && MODULES[inst.module]?.animated);
+          scheduler.setAnimating(wantsAnim);
+        },
         getMedia: () => media,
         getP: () => p,
       });
@@ -95,7 +95,6 @@ export function lumenSketch(p, { state, onReady }) {
 
     computeViewport({ winW: p.width, winH: p.height, bufW: glc.width, bufH: glc.height }, vp);
     p.clear();
-    p.image(alphaImg, vp.x, vp.y, vp.w, vp.h);
     p.image(glc, vp.x, vp.y, vp.w, vp.h);
   };
 

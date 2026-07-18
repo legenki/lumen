@@ -30,7 +30,7 @@ export function createBlurEngine(glc, p, shaders) {
     height: h,
     format: p.HALF_FLOAT,
     depth: false,
-    antialias: true,
+    antialias: false,
   });
 
   function sigmaToPx(sigma, minDim) {
@@ -60,7 +60,7 @@ export function createBlurEngine(glc, p, shaders) {
       height: nh,
       format: p.HALF_FLOAT,
       depth: false,
-      antialias: true,
+      antialias: false,
     });
     tempFbos[name] = fbo;
     return fbo;

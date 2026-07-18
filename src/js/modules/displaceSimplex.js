@@ -21,6 +21,7 @@ export const displaceSimplex = {
   key: 'displaceSimplex',
   label: 'Displace: Simplex Noise',
   type: 'pass',
+  animated: true,
   defaults: {
     noiseMode: 0,
     amp: 10,

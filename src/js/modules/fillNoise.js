@@ -13,6 +13,7 @@ export const fillNoise = {
   key: 'fillNoise',
   label: 'Fill: Noise Grain',
   type: 'pass',
+  animated: true,
   defaults: {
     mix: 0.2, blendMode: 0, threshold: { min: 0, max: 1 }, alphaMode: 0,
     contrast: 1, colorNoise: false, size: 1, fps: 0,

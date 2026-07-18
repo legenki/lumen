@@ -21,6 +21,7 @@ export const displaceSine = {
   key: 'displaceSine',
   label: 'Displace: Sine',
   type: 'pass',
+  animated: true,
   defaults: {
     sineMode: 0,
     amp: 10,

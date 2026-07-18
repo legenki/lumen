@@ -103,8 +103,8 @@ function refreshInspector() {
   renderInspector(document.getElementById('lm-inspector'), {
     state,
     getMedia: () => api?.getMedia(),
-    onParamChange() {
-      layersSection?.refresh(); // Members-toggle меняет badge/indent маски в LayerList
+    onParamChange({ refreshLayers = false } = {}) {
+      if (refreshLayers) layersSection?.refresh();
       api?.scheduler.requestRender();
       saveState();
     },
@@ -118,6 +118,7 @@ function buildUI() {
     state,
     onApply() {
       api?.rebuildBuffer();
+      api?.syncAnimation();
       api?.scheduler.requestRender();
       saveState();
       layersSection?.refresh();
@@ -128,6 +129,7 @@ function buildUI() {
   layersSection = buildLayersSection(root, {
     state,
     onStackChange() {
+      api?.syncAnimation();
       api?.scheduler.requestRender();
       saveState();
     },
@@ -170,6 +172,7 @@ new p5((p) => lumenSketch(p, {
     buildUI();
     panel.syncUIFromState(LEFT_SECTIONS);
     refreshInspector();
+    api.syncAnimation();
   },
 }), container);
 

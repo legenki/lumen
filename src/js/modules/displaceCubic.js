@@ -18,6 +18,7 @@ export const displaceCubic = {
   key: 'displaceCubic',
   label: 'Displace: Cubic Grid',
   type: 'pass',
+  animated: true,
   defaults: {
     amp: { x: 0.7, y: 0.7 },
     tile: { x: 8, y: 8 },
