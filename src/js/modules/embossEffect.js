@@ -165,7 +165,9 @@ export const embossEffect = {
 
     let heightTex = inputTex;
     if (preBlurPx > 0) {
-      const heightSrc = ctx.nextTarget();
+      // Пул, НЕ nextTarget(): второй шаг пинг-понга направил бы основной пасс
+      // в input-FBO (самосэмплирование → p5 подставляет пустую текстуру).
+      const heightSrc = ctx.getBuffer('embossHeight');
       // Draft: slightly softer sigma + downscale (still readable, cheaper).
       const sigma = (env?.draft ? preBlurPx * 0.75 : preBlurPx) / minDim;
       ctx.blur.gaussian(inputTex, heightSrc, {

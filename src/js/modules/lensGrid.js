@@ -211,7 +211,9 @@ export const lensGrid = {
     let blurredTex = inputTex;
     let blurUse = false;
     if (preBlurPx > 0) {
-      const blurTarget = ctx.nextTarget();
+      // Пул, НЕ nextTarget(): второй шаг пинг-понга направил бы основной пасс
+      // в input-FBO (самосэмплирование → p5 подставляет пустую текстуру).
+      const blurTarget = ctx.getBuffer('lensBlur');
       const sigma = (env?.draft ? preBlurPx * 0.75 : preBlurPx) / minDim;
       ctx.blur.gaussian(inputTex, blurTarget, {
         sigma,
