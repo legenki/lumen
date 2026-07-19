@@ -1,7 +1,6 @@
 // LUMEN — пайплайн шейдерных пассов v2: ping-pong между fboA/fboB внутри
 // WEBGL2-графики + FBO-пул getBuffer(name) + mask-стек + blur-движок.
-// Static-prefix cache: если первые N слоёв не animated и нет масок — кэшируем
-// их результат и на анимированных кадрах гоняем только суффикс.
+// present() — identity blit FBO→main через blurComp (не p5.image).
 import { MODULES } from './modules/index.js';
 import { resetMaskStack, activeMask, consumeMaskCharge } from './maskStack.js';
 import { createBlurEngine } from './blurEngine.js';
@@ -29,6 +28,7 @@ import embossEffectFrag from '../shaders/embossEffect.frag?raw';
 import lensGridFrag from '../shaders/lensGrid.frag?raw';
 import warpGridFrag from '../shaders/warpGrid.frag?raw';
 import maskMediaFrag from '../shaders/maskMedia.frag?raw';
+import presentFrag from '../shaders/present.frag?raw';
 
 const FRAG_SOURCES = {
   fillColor: fillColorFrag,
@@ -50,6 +50,7 @@ const FRAG_SOURCES = {
   lensGrid: lensGridFrag,
   warpGrid: warpGridFrag,
   maskMedia: maskMediaFrag,
+  present: presentFrag,
 };
 
 // p — корневой p5-инстанс: константы (HALF_FLOAT и др.) живут на p5.prototype
@@ -59,10 +60,11 @@ export function createPipeline(glc, p) {
   const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: false };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
-  const fboStatic = glc.createFramebuffer(fboOpts);
+  // Initialize color attachments so WebGL never hits "lazy initialization" on first sample.
+  fboBlank.draw(() => glc.clear(0, 0, 0, 0));
+  fbos[0].draw(() => glc.clear(0, 0, 0, 0));
+  fbos[1].draw(() => glc.clear(0, 0, 0, 0));
   let ping = 0;
-  let staticDirty = true;
-  let cachedSplit = -1;
 
   const shaders = {};
   for (const [key, frag] of Object.entries(FRAG_SOURCES)) {
@@ -122,19 +124,32 @@ export function createPipeline(glc, p) {
     fbo.begin();
     glc.clear();
     glc.shader(sh);
-    sh.setUniform('u_src', inputTex);
-    sh.setUniform('u_mask', maskTex ?? maskPlaceholder.color);
+    setTex(sh, 'u_src', inputTex);
+    setTex(sh, 'u_mask', maskTex ?? maskPlaceholder.color);
     sh.setUniform('u_maskUse', !!maskTex);
     const u = mod.uniforms(inst.params, env);
-    for (const name in u) sh.setUniform(name, u[name]);
+    // Skip host-owned sampler uniforms so a module scratch object cannot
+    // overwrite them with placeholders (e.g. historic warpGrid u_src: 0).
+    for (const name in u) {
+      if (name === 'u_src' || name === 'u_mask' || name === 'u_maskUse' || name === 'u_img') continue;
+      // Never feed numbers into samplers (p5: "use a number as the data for a texture").
+      if (typeof u[name] === 'number' && /tex|img|mask|src|noise|disp|blur|samp/i.test(name)) continue;
+      sh.setUniform(name, u[name]);
+    }
     if (inst.module === 'fillMedia') {
       const entry = env.media.get(inst.params.image);
-      sh.setUniform('u_img', entry.tex);
+      setTex(sh, 'u_img', entry.tex);
       sh.setUniform('u_imgRes', entry.res);
     }
     glc.rect(-glc.width / 2, -glc.height / 2, glc.width, glc.height);
     fbo.end();
     return fbo.color;
+  }
+
+  /** setUniform for sampler2D — refuse numbers/null (p5 throws friendly error otherwise). */
+  function setTex(sh, name, tex) {
+    if (tex == null || typeof tex === 'number') return;
+    sh.setUniform(name, tex);
   }
 
   function runStackRange(stack, env, start, end, inputTex) {
@@ -167,53 +182,52 @@ export function createPipeline(glc, p) {
     return tex;
   }
 
-  function copyTexToFbo(tex, target) {
-    target.begin();
-    glc.clear();
-    glc.image(tex, -glc.width / 2, -glc.height / 2, glc.width, glc.height);
-    target.end();
+  /**
+   * Full stack render → final color texture (ping-pong FBO attachment).
+   * Static-prefix cache disabled for correctness: partial caching interacted badly
+   * with p5 userFillShader / FBO sampling and produced blank frames on presets.
+   */
+  function render(stack, env) {
+    return runStackRange(stack, env, 0, stack.length, fboBlank.color);
   }
 
-  /** Прогоняет стек; возвращает текстуру финального пасса (или пустую). */
-  function render(stack, env) {
-    const split = findStaticSplit(stack);
-
-    // Полный прогон, если кэш бесполезен (всё animated / есть маски / split=0).
-    if (split <= 0) {
-      return runStackRange(stack, env, 0, stack.length, fboBlank.color);
+  /**
+   * Present a pipeline texture onto glc's default (screen) framebuffer.
+   * Never use p5.image(): with a leftover userFillShader it re-runs the last
+   * effect instead of blitting. present.frag identity-samples with V flipped
+   * (FBO attachments vs main canvas orientation in p5/WebGL).
+   */
+  function present(tex) {
+    if (!tex || typeof tex === 'number') {
+      glc.clear();
+      return;
     }
-
-    // Пересобрать static prefix при dirty или смене split.
-    if (staticDirty || cachedSplit !== split) {
-      const prefixTex = runStackRange(stack, env, 0, split, fboBlank.color);
-      copyTexToFbo(prefixTex, fboStatic);
-      staticDirty = false;
-      cachedSplit = split;
-    }
-
-    // Все слои статичны — отдаём кэш.
-    if (split >= stack.length) {
-      return fboStatic.color;
-    }
-
-    // Анимированный суффикс: старт с кэшированного префикса.
-    return runStackRange(stack, env, split, stack.length, fboStatic.color);
+    glc.clear();
+    glc.noStroke();
+    glc.textureWrap(p.CLAMP);
+    const sh = shaders.present;
+    glc.shader(sh);
+    setTex(sh, 'u_tex', tex);
+    glc.rect(-glc.width / 2, -glc.height / 2, glc.width, glc.height);
+    if (typeof glc.resetShader === 'function') glc.resetShader();
   }
 
   function invalidate() {
-    staticDirty = true;
-    cachedSplit = -1;
+    // Reserved for future static-prefix cache / dirty tracking.
   }
 
   function resizeAll() {
     fboBlank.resize(glc.width, glc.height);
     fbos[0].resize(glc.width, glc.height);
     fbos[1].resize(glc.width, glc.height);
-    fboStatic.resize(glc.width, glc.height);
+    // Re-clear after resize (attachments wiped).
+    fboBlank.draw(() => glc.clear(0, 0, 0, 0));
+    fbos[0].draw(() => glc.clear(0, 0, 0, 0));
+    fbos[1].draw(() => glc.clear(0, 0, 0, 0));
     Object.values(pool).forEach((fbo) => fbo.resize(glc.width, glc.height));
     blur.resize(glc.width, glc.height);
     invalidate();
   }
 
-  return { render, fboBlank, resizeAll, invalidate, findStaticSplit: (stack) => findStaticSplit(stack) };
+  return { render, present, fboBlank, resizeAll, invalidate, findStaticSplit: (stack) => findStaticSplit(stack) };
 }

@@ -1,6 +1,6 @@
 // LUMEN — главный контроллер: экранный 2D-canvas на всё окно; WEBGL2-графика
-// фиксированного разрешения с пайплайном пассов; шахматка прозрачности под
-// результатом (как в старом инструменте); рендер по требованию + анимация.
+// фиксированного разрешения с пайплайном пассов; шахматка прозрачности — CSS
+// на .lumen-canvas-viewport (не CPU-буфер); рендер по требованию + анимация.
 //
 // Контракт времени (паритет filtr renderFrame):
 //   setFrame(i) / renderFrame(i) — абсолютный курсор → env.time = frame / totalFrames.
@@ -14,14 +14,11 @@ import { createPipeline } from './pipeline.js';
 import { MODULES } from './modules/index.js';
 import { createMediaRegistry } from './media.js';
 import { DEFAULT_MEDIA, BLUE_NOISE_URL } from './assets.js';
-import { createAlphaImage } from '../shared/utils/alphaCheckerboard.js';
 
 export function lumenSketch(p, { state, onReady }) {
   let glc = null; // WEBGL-графика пайплайна
   let pipeline = null;
   let media = null;
-  let alphaImg = null;
-  let alphaKey = '';
   let exporting = false;
   const scheduler = createRenderScheduler(p);
   const vp = {}; // zero-alloc: переиспользуемый viewport-объект
@@ -49,17 +46,6 @@ export function lumenSketch(p, { state, onReady }) {
   function setFrame(frameIndex) {
     state.runtime.frame = normalizeFrame(frameIndex);
     return state.runtime.frame;
-  }
-
-  function ensureAlpha(w, h) {
-    const key = `${w}x${h}`;
-    if (alphaImg && alphaKey === key) return alphaImg;
-    if (alphaImg) {
-      try { alphaImg.remove(); } catch { /* p5 graphics may already be gone */ }
-    }
-    alphaImg = createAlphaImage(p, w, h, 1);
-    alphaKey = key;
-    return alphaImg;
   }
 
   function rebuildBuffer() {
@@ -97,19 +83,13 @@ export function lumenSketch(p, { state, onReady }) {
     env.scaleValue = state.cnv.scale.value;
 
     const outTex = pipeline.render(state.stack, env);
-    glc.clear();
-    glc.image(outTex, -glc.width / 2, -glc.height / 2, glc.width, glc.height);
+    // Shader present (not p5.image): reliable FBO→main blit under p5 2.x.
+    pipeline.present(outTex);
 
     if (blitScreen) {
       computeViewport({ winW: p.width, winH: p.height, bufW: glc.width, bufH: glc.height }, vp);
+      // Transparent clear so CSS checkerboard on .lumen-canvas-viewport shows through.
       p.clear();
-      // Шахматка под прозрачными областями (только preview, не в экспорт).
-      if (state.ui?.showCheckerboard !== false) {
-        const bw = Math.max(1, Math.round(vp.w));
-        const bh = Math.max(1, Math.round(vp.h));
-        const board = ensureAlpha(bw, bh);
-        p.image(board, vp.x, vp.y, vp.w, vp.h);
-      }
       p.image(glc, vp.x, vp.y, vp.w, vp.h);
     }
 

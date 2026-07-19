@@ -72,7 +72,7 @@ export function createBlurEngine(glc, p, shaders) {
     glc.clear();
     glc.textureWrap(p.CLAMP);
     glc.shader(shBlur);
-    shBlur.setUniform('u_tex', tex);
+    if (tex && typeof tex !== 'number') shBlur.setUniform('u_tex', tex);
     shBlur.setUniform('u_res', [srcW, srcH]);
     shBlur.setUniform('u_dir', dir);
     shBlur.setUniform('u_sigmaPx', sigmaPx);
@@ -80,7 +80,8 @@ export function createBlurEngine(glc, p, shaders) {
     shBlur.setUniform('u_inputIsPremult', !!inputIsPremult);
     shBlur.setUniform('u_fastKernel', !!fastKernel);
     shBlur.setUniform('u_maskUse', hasMask);
-    shBlur.setUniform('u_mask', hasMask ? maskTex : maskPlaceholder);
+    const mtex = hasMask ? maskTex : maskPlaceholder;
+    if (mtex && typeof mtex !== 'number') shBlur.setUniform('u_mask', mtex);
     glc.rect(-dstW / 2, -dstH / 2, dstW, dstH);
     target.end();
   }
@@ -94,11 +95,11 @@ export function createBlurEngine(glc, p, shaders) {
     glc.clear();
     glc.textureWrap(p.CLAMP);
     glc.shader(shCopy);
-    shCopy.setUniform('u_tex', tex);
+    if (tex && typeof tex !== 'number') shCopy.setUniform('u_tex', tex);
     shCopy.setUniform('u_useSrc', useSrc);
     shCopy.setUniform('u_mix', mix);
     shCopy.setUniform('u_blendMode', blendMode | 0);
-    if (useSrc) shCopy.setUniform('u_src', baseTex);
+    if (useSrc && baseTex && typeof baseTex !== 'number') shCopy.setUniform('u_src', baseTex);
     glc.rect(-dstW / 2, -dstH / 2, dstW, dstH);
     target.end();
   }

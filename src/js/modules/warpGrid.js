@@ -16,11 +16,11 @@ export function falloffFocusForMode(p) {
   return [p.falloffFocus2D.x + 0.5, p.falloffFocus2D.y + 0.5];
 }
 
+// u_src / u_mask / u_maskUse ставит pipeline.runPass — НЕ кладём их сюда.
+// Раньше u_src:0 / u_mask:0 перезаписывали текстуры после setUniform и p5
+// сыпал "You're trying to use a number as the data for a texture".
 const U = {
-  u_src: 0,
   u_aspect: 0,
-  u_maskUse: false,
-  u_mask: 0,
   u_mix: 0,
   u_strength: 0,
   u_gridCells: [0, 0],

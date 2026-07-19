@@ -209,6 +209,16 @@ describe('warpGrid.uniforms() — falloffFocus offset and gridCells mapping (bun
     expect(u.u_falloffFocus).toEqual([0.5, 0.5]); // falloffFocus1D=0 + 0.5, and 0.5
   });
 
+  it('does not expose sampler placeholders (pipeline owns u_src/u_mask)', () => {
+    // Regression: u_src:0 / u_mask:0 used to overwrite real textures in runPass
+    // → p5 "You're trying to use a number as the data for a texture".
+    const u = MODULES.warpGrid.uniforms(MODULES.warpGrid.defaults, ENV);
+    expect(u).not.toHaveProperty('u_src');
+    expect(u).not.toHaveProperty('u_mask');
+    expect(u).not.toHaveProperty('u_maskUse');
+    expect(u).not.toHaveProperty('u_img');
+  });
+
   it('applies sineIn easing to strength', () => {
     const p = { ...MODULES.warpGrid.defaults, strength: 1 };
     const u = MODULES.warpGrid.uniforms(p, ENV);

@@ -182,11 +182,13 @@ export const embossEffect = {
     ctx.glc.clear();
     const shader = ctx.shaders.embossEffect;
     ctx.glc.shader(shader);
-    shader.setUniform('u_src', inputTex);
-    shader.setUniform('u_heightTex', heightTex);
+    // Guard samplers: p5 errors if a number is passed to sampler2D uniforms.
+    const mask = maskTex || ctx.maskPlaceholder.color;
+    if (inputTex && typeof inputTex !== 'number') shader.setUniform('u_src', inputTex);
+    if (heightTex && typeof heightTex !== 'number') shader.setUniform('u_heightTex', heightTex);
     shader.setUniform('u_heightUseTex', true);
     shader.setUniform('u_srcRes', [w, h]);
-    shader.setUniform('u_mask', maskTex ? maskTex : ctx.maskPlaceholder.color);
+    if (mask && typeof mask !== 'number') shader.setUniform('u_mask', mask);
     shader.setUniform('u_maskUse', !!maskTex);
     shader.setUniform('u_mix', p.mix);
     shader.setUniform('u_glossContourMode', p.contourMode);
