@@ -47,11 +47,40 @@ function mapQualityToBitrate(rec, w, h, fps) {
 }
 
 /**
- * Capture RGBA pixels from a canvas (WebGL or 2D) into a reusable ImageData buffer.
- * Prefer drawImage → getImageData (works for WebGL without preserveDrawingBuffer quirks
- * when the canvas was just drawn). Reuses `scratch` { canvas, ctx, imageData }.
+ * Capture RGBA from a canvas into a reusable buffer.
+ * Prefer gl.readPixels into a pooled Uint8Array (avoids 2D canvas alloc).
+ * Falls back to drawImage+getImageData. Reuses `scratch` fields.
  */
 function captureRgba(targetCanvas, w, h, scratch) {
+  const need = w * h * 4;
+  if (!scratch.pixels || scratch.pixels.length !== need) {
+    scratch.pixels = new Uint8Array(need);
+  }
+
+  const gl = targetCanvas.getContext?.('webgl2') || targetCanvas.getContext?.('webgl');
+  if (gl) {
+    try {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.finish();
+      // readPixels is bottom-up; flip rows into scratch.pixels so encoder sees top-left origin.
+      if (!scratch.row || scratch.row.length !== w * 4) {
+        scratch.row = new Uint8Array(w * 4);
+      }
+      if (!scratch.raw || scratch.raw.length !== need) {
+        scratch.raw = new Uint8Array(need);
+      }
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, scratch.raw);
+      const rowBytes = w * 4;
+      for (let y = 0; y < h; y++) {
+        const src = (h - 1 - y) * rowBytes;
+        scratch.pixels.set(scratch.raw.subarray(src, src + rowBytes), y * rowBytes);
+      }
+      return scratch.pixels;
+    } catch {
+      // fall through to 2D path
+    }
+  }
+
   if (!scratch.canvas) {
     scratch.canvas = document.createElement('canvas');
     scratch.ctx = scratch.canvas.getContext('2d', { willReadFrequently: true });
@@ -61,12 +90,10 @@ function captureRgba(targetCanvas, w, h, scratch) {
     scratch.canvas.height = h;
     scratch.imageData = null;
   }
-  const gl = targetCanvas.getContext?.('webgl2') || targetCanvas.getContext?.('webgl');
-  if (gl) gl.finish();
-  scratch.ctx.clearRect(0, 0, w, h);
   scratch.ctx.drawImage(targetCanvas, 0, 0, w, h);
-  scratch.imageData = scratch.ctx.getImageData(0, 0, w, h);
-  return scratch.imageData.data;
+  const img = scratch.ctx.getImageData(0, 0, w, h);
+  scratch.pixels.set(img.data);
+  return scratch.pixels;
 }
 
 function webCodecsSupported() {

@@ -1,12 +1,7 @@
-// LUMEN — главный контроллер: экранный 2D-canvas на всё окно; WEBGL2-графика
-// фиксированного разрешения с пайплайном пассов; шахматка прозрачности — CSS
-// на .lumen-canvas-viewport (не CPU-буфер); рендер по требованию + анимация.
-//
-// Контракт времени (паритет filtr renderFrame):
-//   setFrame(i) / renderFrame(i) — абсолютный курсор → env.time = frame / totalFrames.
-//   Preview (loop) инкрементирует frame только когда animating && !exporting.
-//   Export вызывает renderFrame(i, { blitScreen: false }) без fullscreen blit.
+// LUMEN — главный контроллер: fullscreen 2D canvas + WEBGL offscreen pipeline.
+// Preview: capped resolution + UNSIGNED_BYTE + draft blur. Export: full res + HALF_FLOAT.
 import { bufferSize } from './state.js';
+import { PREVIEW_MAX_EDGE } from './perf.js';
 import { computeViewport } from './viewport.js';
 import { createRenderScheduler } from './scheduler.js';
 import { restoreGlModes } from './graphicsModes.js';
@@ -16,12 +11,15 @@ import { createMediaRegistry } from './media.js';
 import { DEFAULT_MEDIA, BLUE_NOISE_URL } from './assets.js';
 
 export function lumenSketch(p, { state, onReady }) {
-  let glc = null; // WEBGL-графика пайплайна
+  let glc = null;
   let pipeline = null;
   let media = null;
   let exporting = false;
+  /** 'preview' | 'export' — buffer size + FBO format */
+  let qualityMode = 'preview';
+  let pausedByVisibility = false;
   const scheduler = createRenderScheduler(p);
-  const vp = {}; // zero-alloc: переиспользуемый viewport-объект
+  const vp = {};
   const env = {
     width: 0,
     height: 0,
@@ -31,6 +29,7 @@ export function lumenSketch(p, { state, onReady }) {
     media: null,
     textures: { blueNoise: null },
     scaleValue: 1,
+    draft: true,
   };
 
   function totalFrames() {
@@ -48,28 +47,41 @@ export function lumenSketch(p, { state, onReady }) {
     return state.runtime.frame;
   }
 
-  function rebuildBuffer() {
-    const { width, height } = bufferSize(state.cnv);
+  function fboFormatForMode(mode) {
+    // Preview: RGBA8 bandwidth win. Export: HALF_FLOAT for soft gradients/emboss.
+    if (mode === 'export') return p.HALF_FLOAT;
+    return p.UNSIGNED_BYTE ?? p.HALF_FLOAT;
+  }
+
+  function rebuildBuffer(mode = qualityMode) {
+    qualityMode = mode;
+    const sizeMode = mode === 'export' ? 'export' : 'preview';
+    const { width, height } = bufferSize(state.cnv, {
+      mode: sizeMode,
+      maxEdge: PREVIEW_MAX_EDGE,
+    });
+    const format = fboFormatForMode(mode);
+    const needNewPipeline = !pipeline || pipeline.format !== format;
+
     if (!glc) {
       glc = p.createGraphics(width, height, p.WEBGL);
       restoreGlModes(glc);
-      pipeline = createPipeline(glc, p);
-    } else if (glc.width !== width || glc.height !== height) {
-      glc.resizeCanvas(width, height);
-      restoreGlModes(glc);
-      pipeline.resizeAll();
+      pipeline = createPipeline(glc, p, { format });
+    } else if (glc.width !== width || glc.height !== height || needNewPipeline) {
+      if (glc.width !== width || glc.height !== height) {
+        glc.resizeCanvas(width, height);
+        restoreGlModes(glc);
+      }
+      if (needNewPipeline) {
+        pipeline = createPipeline(glc, p, { format });
+      } else {
+        pipeline.resizeAll();
+      }
     }
     state.runtime.buffer = glc;
     pipeline?.invalidate();
   }
 
-  /**
-   * Рендерит один абсолютный кадр в WEBGL-буфер.
-   * @param {number} frameIndex
-   * @param {{ blitScreen?: boolean }} [opts]
-   *   blitScreen — рисовать результат на fullscreen 2D canvas (preview).
-   *   false при экспорте: только glc, без viewport composite.
-   */
   function renderFrame(frameIndex, opts = {}) {
     const blitScreen = opts.blitScreen !== false;
     const total = totalFrames();
@@ -81,14 +93,13 @@ export function lumenSketch(p, { state, onReady }) {
     env.totalFrames = total;
     env.time = state.runtime.frame / total;
     env.scaleValue = state.cnv.scale.value;
+    env.draft = qualityMode === 'preview';
 
     const outTex = pipeline.render(state.stack, env);
-    // Shader present (not p5.image): reliable FBO→main blit under p5 2.x.
     pipeline.present(outTex);
 
     if (blitScreen) {
       computeViewport({ winW: p.width, winH: p.height, bufW: glc.width, bufH: glc.height }, vp);
-      // Transparent clear so CSS checkerboard on .lumen-canvas-viewport shows through.
       p.clear();
       p.image(glc, vp.x, vp.y, vp.w, vp.h);
     }
@@ -103,8 +114,11 @@ export function lumenSketch(p, { state, onReady }) {
 
   function syncAnimation() {
     syncFrameRate();
-    const wantsAnim = !exporting &&
-      state.cnv.animation &&
+    if (document.hidden || exporting) {
+      scheduler.setAnimating(false);
+      return;
+    }
+    const wantsAnim = state.cnv.animation &&
       state.stack.some((inst) => inst.enabled && MODULES[inst.module]?.animated);
     scheduler.setAnimating(wantsAnim);
   }
@@ -118,13 +132,47 @@ export function lumenSketch(p, { state, onReady }) {
     }
   }
 
+  /**
+   * Run work at full export resolution + HALF_FLOAT, then restore preview buffer.
+   * Used by PNG / MP4 so live preview stays cheap.
+   */
+  async function withFinalQuality(fn) {
+    const wasAnimating = scheduler.isAnimating();
+    const savedFrame = state.runtime.frame;
+    setExporting(true);
+    rebuildBuffer('export');
+    try {
+      return await fn();
+    } finally {
+      state.runtime.frame = savedFrame;
+      rebuildBuffer('preview');
+      setExporting(false);
+      scheduler.setAnimating(wasAnimating);
+      scheduler.requestRender();
+    }
+  }
+
   function invalidatePipeline() {
     pipeline?.invalidate();
   }
 
+  function onVisibility() {
+    if (document.hidden) {
+      if (scheduler.isAnimating()) {
+        pausedByVisibility = true;
+        scheduler.setAnimating(false);
+      }
+    } else if (pausedByVisibility || state.cnv.animation) {
+      pausedByVisibility = false;
+      syncAnimation();
+      scheduler.requestRender();
+    }
+  }
+
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
-    p.pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+    // Canvas is only a viewport blit; panels are DOM. DPR 1 saves a lot on retina.
+    p.pixelDensity(1);
     syncFrameRate();
     media = createMediaRegistry(DEFAULT_MEDIA, (url, ok, err) => p.loadImage(url, ok, err));
     env.media = media;
@@ -141,13 +189,14 @@ export function lumenSketch(p, { state, onReady }) {
       },
       () => console.warn('[lumen] blue-noise load failed')
     );
-    rebuildBuffer();
+    rebuildBuffer('preview');
     scheduler.init();
     scheduler.requestRender();
+    document.addEventListener('visibilitychange', onVisibility);
     if (onReady) {
       onReady({
         scheduler,
-        rebuildBuffer,
+        rebuildBuffer: () => rebuildBuffer(qualityMode === 'export' ? 'export' : 'preview'),
         getBuffer: () => glc,
         syncAnimation,
         syncFrameRate,
@@ -158,6 +207,8 @@ export function lumenSketch(p, { state, onReady }) {
         totalFrames,
         setExporting,
         isExporting: () => exporting,
+        withFinalQuality,
+        getQualityMode: () => qualityMode,
         getMedia: () => media,
         getP: () => p,
         getEnv: () => env,
@@ -167,8 +218,6 @@ export function lumenSketch(p, { state, onReady }) {
 
   p.draw = () => {
     scheduler.consumeFrame();
-    // Во время экспорта draw не должен крутиться (noLoop), но на всякий случай
-    // не инкрементируем кадр и не блитим лишний раз.
     if (exporting) return;
     if (scheduler.isAnimating()) {
       state.runtime.frame = (state.runtime.frame + 1) % totalFrames();

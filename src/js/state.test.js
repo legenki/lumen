@@ -23,12 +23,21 @@ describe('state defaults', () => {
 });
 
 describe('bufferSize', () => {
-  it('is base size × scale, rounded', () => {
+  it('is base size × scale, rounded (export default)', () => {
     const s = createDefaultState();
     expect(bufferSize(s.cnv)).toEqual({ width: 1200, height: 1200 }); // 480 × 2.5
     s.cnv.ratio = '16:9';
     s.cnv.scale.value = 3;
     expect(bufferSize(s.cnv)).toEqual({ width: 1920, height: 1080 });
+  });
+
+  it('preview mode can cap long edge', () => {
+    const s = createDefaultState();
+    s.cnv.scale.value = 8;
+    const prev = bufferSize(s.cnv, { mode: 'preview', maxEdge: 1280 });
+    expect(Math.max(prev.width, prev.height)).toBeLessThanOrEqual(1280);
+    expect(prev.width % 2).toBe(0);
+    expect(prev.height % 2).toBe(0);
   });
 });
 

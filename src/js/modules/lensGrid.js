@@ -212,12 +212,14 @@ export const lensGrid = {
     let blurUse = false;
     if (preBlurPx > 0) {
       const blurTarget = ctx.nextTarget();
+      const sigma = (env?.draft ? preBlurPx * 0.75 : preBlurPx) / minDim;
       ctx.blur.gaussian(inputTex, blurTarget, {
-        sigma: preBlurPx / minDim,
+        sigma,
         minDimOverride: minDim,
         minScale: 1,
         inputIsPremult: true,
         mask: maskTex,
+        draft: !!env?.draft,
       });
       blurredTex = blurTarget.color;
       blurUse = true;

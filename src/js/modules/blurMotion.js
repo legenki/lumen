@@ -51,7 +51,7 @@ export const blurMotion = {
     },
   ],
   motionSigma,
-  run({ ctx, inst, inputTex, _env, maskTex }) {
+  run({ ctx, inst, inputTex, env, maskTex }) {
     const p = inst.params;
     const sigma = motionSigma(p);
     const target = ctx.nextTarget();
@@ -64,6 +64,7 @@ export const blurMotion = {
       mask: maskTex,
       mix,
       blendMode,
+      draft: !!env?.draft,
     });
     return target.color;
   },

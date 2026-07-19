@@ -13,6 +13,7 @@ import { renderInspector } from './inspector.js';
 import { PRESETS } from './presets.js';
 import { applyPresetToState } from './presetConvert.js';
 import { startMp4Export, cancelMp4Export } from './mp4Export.js';
+import { perfHintText } from './perf.js';
 
 const STORAGE_KEY = 'lumen-tool';
 const THEME_KEY = 'lumen-theme';
@@ -31,9 +32,8 @@ registerSW({
 });
 
 const state = createDefaultState();
-window.__lumenState = state; // отладка в консоли; не API
+window.__lumenState = state;
 
-// dev-хук сверки с эталоном (UI пресетов — фаза 6)
 window.__lumenApplyPreset = (name) => {
   const preset = PRESETS.find((p) => p.name === name);
   if (!preset) return `not found; known: ${PRESETS.map((p) => p.name).join(', ')}`;
@@ -42,8 +42,9 @@ window.__lumenApplyPreset = (name) => {
   api?.rebuildBuffer();
   api?.scheduler.requestRender();
   saveState();
-  buildUI(); // перестроить Layers-список
+  buildUI();
   refreshInspector();
+  updatePerfHint();
   return `applied: ${name} (${state.stack.length} modules)`;
 };
 
@@ -54,9 +55,10 @@ const { saveState, loadState } = createPersistence(
 );
 loadState();
 
-let api = null; // onReady API from sketch
+let api = null;
 let layersSection = null;
-let statusToken = 0; // prevents stale timeouts from clearing fresh status
+let statusToken = 0;
+let scrubberRaf = 0;
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
@@ -69,9 +71,9 @@ function applyChange(ctrl) {
   if (ctrl.regen === 'animation' && api) {
     api.syncAnimation();
     api.scheduler.requestRender();
+    syncScrubberLoop();
   }
   if (ctrl.regen === 'timeline' && api) {
-    // FPS / length changed: clamp frame, sync p5 frameRate, refresh scrubber max
     const max = timelineFrameMax(state.rec);
     if (state.runtime.frame > max) {
       state.runtime.frame = max;
@@ -85,55 +87,58 @@ function applyChange(ctrl) {
     api.scheduler.requestRender();
   }
   if (ctrl.regen === 'frame' && api) {
-    // Absolute scrub — do not advance via animation step
     api.setFrame?.(state.runtime.frame);
     api.scheduler.requestRender();
   }
-  if (ctrl.regen === 'none') {
-    // quality/bitrate — export-only, no re-render required
-  }
 
-  // Stack/param mutations from other panels call invalidate separately
   if (ctrl.regen !== 'none' && ctrl.regen !== 'frame') {
     api?.invalidatePipeline?.();
   }
 
-  saveState();
+  saveState(); // already debounced 500ms in createPersistence
+  updatePerfHint();
 }
 
-function refreshVisibility() {
-  // no conditional rows in LEFT_SECTIONS yet
-}
+function refreshVisibility() {}
 
-function exportPNG() {
+async function exportPNG() {
   if (!api) return;
-  const g = api.getBuffer();
-  const el = g.canvas ?? g.elt; // p5.Graphics: canvas (2.x) / elt (fallback)
-  el.toBlob((blob) => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `lumen_${timestamp()}.png`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  try {
+    setStatus('Rendering PNG…', { ttl: 0 });
+    const run = async () => {
+      api.renderFrame(state.runtime.frame, { blitScreen: false });
+      const g = api.getBuffer();
+      const el = g.canvas ?? g.elt;
+      await new Promise((resolve, reject) => {
+        el.toBlob((blob) => {
+          if (!blob) return reject(new Error('toBlob failed'));
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `lumen_${timestamp()}.png`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+          resolve();
+        }, 'image/png');
+      });
+    };
+    if (typeof api.withFinalQuality === 'function') {
+      await api.withFinalQuality(run);
+    } else {
+      await run();
+    }
     setStatus('PNG saved');
-  }, 'image/png');
+  } catch (e) {
+    console.error(e);
+    setStatus('PNG export failed');
+  }
+  updatePerfHint();
 }
 
-/**
- * Footer status line.
- * @param {string} text
- * @param {{ clearIf?: string, ttl?: number }} [opts]
- *   clearIf — only clear after ttl if status still equals this message
- *   ttl — ms before auto-clear (0 = never auto-clear); default 2500
- */
 function setStatus(text, opts = {}) {
   const s = document.getElementById('lm-export-status');
   if (!s) return;
-  // Support clearIf protocol from exportMedia finalizer
   if (opts.clearIf !== undefined) {
-    if (s.textContent === opts.clearIf || text === '') {
-      if (s.textContent === opts.clearIf) s.textContent = '';
-    }
+    if (s.textContent === opts.clearIf) s.textContent = '';
     return;
   }
   s.textContent = text;
@@ -141,12 +146,17 @@ function setStatus(text, opts = {}) {
   if (!ttl) return;
   const token = ++statusToken;
   setTimeout(() => {
-    if (token !== statusToken) return; // superseded by a newer status
+    if (token !== statusToken) return;
     if (s.textContent === text) s.textContent = '';
   }, ttl);
 }
 
-// SSOT for export duration = state.rec.length.value; recVideo mirrors it.
+function updatePerfHint() {
+  const el = document.getElementById('lm-perf-hint');
+  if (!el) return;
+  el.textContent = perfHintText(state);
+}
+
 const recVideo = {
   active: false,
   cancel: false,
@@ -168,6 +178,7 @@ function refreshInspector() {
       api?.invalidatePipeline?.();
       api?.scheduler.requestRender();
       saveState();
+      updatePerfHint();
     },
   });
 }
@@ -190,7 +201,6 @@ function syncMp4LengthSelect() {
   const sel = document.getElementById('lm-mp4-length');
   if (!sel) return;
   const v = String(state.rec.length.value);
-  // Ensure option exists for current length
   if (![...sel.options].some((o) => o.value === v)) {
     const opt = document.createElement('option');
     opt.value = v;
@@ -210,6 +220,28 @@ function syncExportButtons() {
   }
 }
 
+/** rAF scrubber sync only while animating (no setInterval when idle). */
+function syncScrubberLoop() {
+  if (scrubberRaf) {
+    cancelAnimationFrame(scrubberRaf);
+    scrubberRaf = 0;
+  }
+  if (!api || recVideo.active) return;
+  if (!api.scheduler.isAnimating()) return;
+
+  const tick = () => {
+    scrubberRaf = 0;
+    if (!api || recVideo.active || !api.scheduler.isAnimating()) return;
+    const slide = document.getElementById('lm-timeline-frame');
+    const num = document.getElementById('lm-timeline-frame-num');
+    const f = state.runtime.frame;
+    if (slide && slide !== document.activeElement) slide.value = String(f);
+    if (num && num !== document.activeElement) num.value = String(f);
+    scrubberRaf = requestAnimationFrame(tick);
+  };
+  scrubberRaf = requestAnimationFrame(tick);
+}
+
 function buildUI() {
   const root = document.getElementById('lm-left');
   root.innerHTML = '';
@@ -225,6 +257,8 @@ function buildUI() {
       refreshInspector();
       syncTimelineScrubber();
       syncMp4LengthSelect();
+      updatePerfHint();
+      syncScrubberLoop();
     },
   });
   panel.buildSections(root, LEFT_SECTIONS);
@@ -235,6 +269,8 @@ function buildUI() {
       api?.syncAnimation();
       api?.scheduler.requestRender();
       saveState();
+      updatePerfHint();
+      syncScrubberLoop();
     },
     onSelect: refreshInspector,
   });
@@ -244,7 +280,6 @@ function buildUI() {
     onChange() {
       api?.invalidatePipeline?.();
       api?.scheduler.requestRender();
-      // user-слоты НЕ сериализуем (blob:-URL живут в памяти сессии)
       refreshInspector();
     },
   });
@@ -260,10 +295,8 @@ function buildUI() {
     mp4Btn.onclick = async () => {
       if (recVideo.active) return;
       syncExportButtons();
-      // Long-running export: don't auto-clear progress messages mid-run
       const status = (msg, opts) => {
         if (opts?.clearIf !== undefined) return setStatus(msg, opts);
-        // During export keep progress until next update (ttl 0), final messages use default
         const isProgress = typeof msg === 'string' && (
           msg.startsWith('Encoding') || msg.startsWith('Preparing') || msg.startsWith('Finalizing')
         );
@@ -276,6 +309,8 @@ function buildUI() {
       } finally {
         syncExportButtons();
         syncTimelineScrubber();
+        updatePerfHint();
+        syncScrubberLoop();
       }
     };
   }
@@ -295,7 +330,6 @@ function buildUI() {
       const n = parseInt(e.target.value, 10) || 4;
       state.rec.length.value = n;
       applyChange({ id: 'lm-mp4-length', regen: 'timeline', path: 'rec.length.value' });
-      // Keep panel slider in sync
       panel.syncUIFromState(LEFT_SECTIONS);
       syncTimelineScrubber();
     };
@@ -306,20 +340,9 @@ function buildUI() {
 
   syncTimelineScrubber();
   syncExportButtons();
+  updatePerfHint();
+  syncScrubberLoop();
 }
-
-// Live scrubber value while animation plays (lightweight DOM touch)
-function tickScrubberFromRuntime() {
-  if (!api || recVideo.active) return;
-  if (!api.scheduler.isAnimating()) return;
-  const slide = document.getElementById('lm-timeline-frame');
-  const num = document.getElementById('lm-timeline-frame-num');
-  if (!slide && !num) return;
-  const f = state.runtime.frame;
-  if (slide && slide !== document.activeElement) slide.value = String(f);
-  if (num && num !== document.activeElement) num.value = String(f);
-}
-setInterval(tickScrubberFromRuntime, 250);
 
 const container = document.getElementById('lumen-canvas');
 new p5((p) => lumenSketch(p, {
@@ -332,6 +355,8 @@ new p5((p) => lumenSketch(p, {
     api.syncAnimation();
     syncTimelineScrubber();
     syncMp4LengthSelect();
+    updatePerfHint();
+    syncScrubberLoop();
   },
 }), container);
 

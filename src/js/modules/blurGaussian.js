@@ -54,7 +54,7 @@ export const blurGaussian = {
     },
   ],
   gaussianSigma,
-  run({ ctx, inst, inputTex, _env, maskTex }) {
+  run({ ctx, inst, inputTex, env, maskTex }) {
     const p = inst.params;
     const sigma = gaussianSigma(p);
     const target = ctx.nextTarget();
@@ -66,6 +66,7 @@ export const blurGaussian = {
       mask: maskTex,
       mix: p.mix ?? 1,
       blendMode: p.blendMode ?? 0,
+      draft: !!env?.draft,
     });
     return target.color;
   },

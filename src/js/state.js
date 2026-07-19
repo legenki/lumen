@@ -25,10 +25,34 @@ export const RATIO_BASE_SIZE = {
   '1:2': { width: 240, height: 480 },
 };
 
-export function bufferSize(cnv) {
+/**
+ * Buffer pixel size from ratio × scale.
+ * @param {object} cnv
+ * @param {{ mode?: 'preview'|'export', maxEdge?: number }} [opts]
+ *   mode 'export' (default for backward-compat when no opts): full resolution.
+ *   mode 'preview': caps longest edge to maxEdge (default 1280) for realtime.
+ */
+export function bufferSize(cnv, opts = {}) {
   const base = RATIO_BASE_SIZE[cnv.ratio] || RATIO_BASE_SIZE['1:1'];
   const k = cnv.scale.value;
-  return { width: Math.round(base.width * k), height: Math.round(base.height * k) };
+  let width = Math.round(base.width * k);
+  let height = Math.round(base.height * k);
+
+  const mode = opts.mode ?? 'export';
+  if (mode === 'preview') {
+    const maxEdge = opts.maxEdge ?? 1280;
+    const edge = Math.max(width, height);
+    if (edge > maxEdge) {
+      const s = maxEdge / edge;
+      width = Math.max(2, Math.round(width * s));
+      height = Math.max(2, Math.round(height * s));
+    }
+  }
+
+  // H.264 / many GPUs prefer even dimensions
+  if (width % 2 !== 0) width -= 1;
+  if (height % 2 !== 0) height -= 1;
+  return { width: Math.max(2, width), height: Math.max(2, height) };
 }
 
 export function createDefaultState() {

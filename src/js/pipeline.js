@@ -1,6 +1,5 @@
-// LUMEN — пайплайн шейдерных пассов v2: ping-pong между fboA/fboB внутри
-// WEBGL2-графики + FBO-пул getBuffer(name) + mask-стек + blur-движок.
-// present() — identity blit FBO→main через blurComp (не p5.image).
+// LUMEN — пайплайн шейдерных пассов v2: ping-pong FBO + mask stack + blur.
+// present() — identity blit FBO→main with Y-flip. Static-prefix cache when safe.
 import { MODULES } from './modules/index.js';
 import { resetMaskStack, activeMask, consumeMaskCharge } from './maskStack.js';
 import { createBlurEngine } from './blurEngine.js';
@@ -53,33 +52,37 @@ const FRAG_SOURCES = {
   present: presentFrag,
 };
 
-// p — корневой p5-инстанс: константы (HALF_FLOAT и др.) живут на p5.prototype
-// и есть только у p5-инстансов; p5.Graphics их НЕ наследует (p5 2.2.3), поэтому
-// glc.HALF_FLOAT === undefined и p5 молча откатился бы к UNSIGNED_BYTE.
-export function createPipeline(glc, p) {
-  const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: false };
+/**
+ * @param {object} glc - p5.Graphics WEBGL
+ * @param {object} p - root p5 (for HALF_FLOAT / UNSIGNED_BYTE constants)
+ * @param {{ format?: number }} [opts] - framebuffer color format
+ */
+export function createPipeline(glc, p, opts = {}) {
+  const format = opts.format ?? p.HALF_FLOAT;
+  const fboOpts = { format, depth: false, antialias: false };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
-  // Initialize color attachments so WebGL never hits "lazy initialization" on first sample.
+  const fboStatic = glc.createFramebuffer(fboOpts);
   fboBlank.draw(() => glc.clear(0, 0, 0, 0));
   fbos[0].draw(() => glc.clear(0, 0, 0, 0));
   fbos[1].draw(() => glc.clear(0, 0, 0, 0));
+  fboStatic.draw(() => glc.clear(0, 0, 0, 0));
   let ping = 0;
+  let staticDirty = true;
+  let cachedSplit = -1;
 
   const shaders = {};
   for (const [key, frag] of Object.entries(FRAG_SOURCES)) {
     shaders[key] = glc.createShader(lumenVert, frag);
   }
 
-  // 1×1 белая заглушка для неиспользуемого u_mask.
   const maskPlaceholder = glc.createFramebuffer({ width: 1, height: 1, depth: false });
   maskPlaceholder.draw(() => glc.clear(1, 1, 1, 1));
 
-  // FBO-пул именованных буферов (маски, временные цели модулей с run()).
   const pool = {};
-  function getBuffer(name, opts = {}) {
-    const defaults = { width: glc.width, height: glc.height, format: p.HALF_FLOAT, depth: false, antialias: false };
-    const merged = { ...defaults, ...opts };
+  function getBuffer(name, bufOpts = {}) {
+    const defaults = { width: glc.width, height: glc.height, format, depth: false, antialias: false };
+    const merged = { ...defaults, ...bufOpts };
     const existing = pool[name];
     if (existing) {
       if (existing.width !== merged.width || existing.height !== merged.height) {
@@ -99,7 +102,6 @@ export function createPipeline(glc, p) {
     return fbos[ping];
   }
 
-  // runCtx, передаваемый в модульные хуки run({ ctx, inst, inputTex, env, maskTex }).
   const ctx = {
     glc,
     p,
@@ -112,12 +114,17 @@ export function createPipeline(glc, p) {
     maskPlaceholder,
   };
 
+  function setTex(sh, name, tex) {
+    if (tex == null || typeof tex === 'number') return;
+    sh.setUniform(name, tex);
+  }
+
   function runPass(inst, inputTex, env, maskTex) {
     const mod = MODULES[inst.module];
     if (!mod) return inputTex;
     if (inst.module === 'fillMedia') {
       const entry = env.media.get(inst.params.image);
-      if (!entry?.ready) return inputTex; // как старый код: медиа нет — пасс прозрачен
+      if (!entry?.ready) return inputTex;
     }
     const fbo = nextTarget();
     const sh = shaders[inst.module];
@@ -128,11 +135,8 @@ export function createPipeline(glc, p) {
     setTex(sh, 'u_mask', maskTex ?? maskPlaceholder.color);
     sh.setUniform('u_maskUse', !!maskTex);
     const u = mod.uniforms(inst.params, env);
-    // Skip host-owned sampler uniforms so a module scratch object cannot
-    // overwrite them with placeholders (e.g. historic warpGrid u_src: 0).
     for (const name in u) {
       if (name === 'u_src' || name === 'u_mask' || name === 'u_maskUse' || name === 'u_img') continue;
-      // Never feed numbers into samplers (p5: "use a number as the data for a texture").
       if (typeof u[name] === 'number' && /tex|img|mask|src|noise|disp|blur|samp/i.test(name)) continue;
       sh.setUniform(name, u[name]);
     }
@@ -146,12 +150,6 @@ export function createPipeline(glc, p) {
     return fbo.color;
   }
 
-  /** setUniform for sampler2D — refuse numbers/null (p5 throws friendly error otherwise). */
-  function setTex(sh, name, tex) {
-    if (tex == null || typeof tex === 'number') return;
-    sh.setUniform(name, tex);
-  }
-
   function runStackRange(stack, env, start, end, inputTex) {
     resetMaskStack(ctx);
     let tex = inputTex;
@@ -162,14 +160,14 @@ export function createPipeline(glc, p) {
         resetMaskStack(ctx);
         const mod = MODULES[inst.module];
         if (!mod?.run) continue;
-        mod.run({ ctx, inst, inputTex: tex, env }); // маска не меняет вход
+        mod.run({ ctx, inst, inputTex: tex, env });
         continue;
       }
       if (inst.type !== 'pass') continue;
       const mask = activeMask(ctx);
       const maskTex = mask ? getBuffer(mask.bufName).color : null;
       if (!inst.enabled) {
-        consumeMaskCharge(ctx, !!mask); // выключенный пасс тоже списывает заряд
+        consumeMaskCharge(ctx, !!mask);
         continue;
       }
       const mod = MODULES[inst.module];
@@ -183,20 +181,33 @@ export function createPipeline(glc, p) {
   }
 
   /**
-   * Full stack render → final color texture (ping-pong FBO attachment).
-   * Static-prefix cache disabled for correctness: partial caching interacted badly
-   * with p5 userFillShader / FBO sampling and produced blank frames on presets.
+   * Full stack with optional static-prefix cache.
+   * Cache stores layers [0, split) when no masks precede the first animated pass.
+   * Copy uses blur.copy (never p5.image) so userFillShader cannot poison the blit.
    */
   function render(stack, env) {
-    return runStackRange(stack, env, 0, stack.length, fboBlank.color);
+    const split = findStaticSplit(stack);
+
+    if (split <= 0) {
+      staticDirty = true;
+      cachedSplit = -1;
+      return runStackRange(stack, env, 0, stack.length, fboBlank.color);
+    }
+
+    if (staticDirty || cachedSplit !== split) {
+      const prefixTex = runStackRange(stack, env, 0, split, fboBlank.color);
+      blur.copy(prefixTex, fboStatic, glc.width, glc.height);
+      staticDirty = false;
+      cachedSplit = split;
+    }
+
+    if (split >= stack.length) {
+      return fboStatic.color;
+    }
+
+    return runStackRange(stack, env, split, stack.length, fboStatic.color);
   }
 
-  /**
-   * Present a pipeline texture onto glc's default (screen) framebuffer.
-   * Never use p5.image(): with a leftover userFillShader it re-runs the last
-   * effect instead of blitting. present.frag identity-samples with V flipped
-   * (FBO attachments vs main canvas orientation in p5/WebGL).
-   */
   function present(tex) {
     if (!tex || typeof tex === 'number') {
       glc.clear();
@@ -213,21 +224,31 @@ export function createPipeline(glc, p) {
   }
 
   function invalidate() {
-    // Reserved for future static-prefix cache / dirty tracking.
+    staticDirty = true;
+    cachedSplit = -1;
   }
 
   function resizeAll() {
     fboBlank.resize(glc.width, glc.height);
     fbos[0].resize(glc.width, glc.height);
     fbos[1].resize(glc.width, glc.height);
-    // Re-clear after resize (attachments wiped).
+    fboStatic.resize(glc.width, glc.height);
     fboBlank.draw(() => glc.clear(0, 0, 0, 0));
     fbos[0].draw(() => glc.clear(0, 0, 0, 0));
     fbos[1].draw(() => glc.clear(0, 0, 0, 0));
+    fboStatic.draw(() => glc.clear(0, 0, 0, 0));
     Object.values(pool).forEach((fbo) => fbo.resize(glc.width, glc.height));
     blur.resize(glc.width, glc.height);
     invalidate();
   }
 
-  return { render, present, fboBlank, resizeAll, invalidate, findStaticSplit: (stack) => findStaticSplit(stack) };
+  return {
+    render,
+    present,
+    fboBlank,
+    resizeAll,
+    invalidate,
+    findStaticSplit: (stack) => findStaticSplit(stack),
+    format,
+  };
 }

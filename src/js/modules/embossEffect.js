@@ -166,12 +166,15 @@ export const embossEffect = {
     let heightTex = inputTex;
     if (preBlurPx > 0) {
       const heightSrc = ctx.nextTarget();
+      // Draft: slightly softer sigma + downscale (still readable, cheaper).
+      const sigma = (env?.draft ? preBlurPx * 0.75 : preBlurPx) / minDim;
       ctx.blur.gaussian(inputTex, heightSrc, {
-        sigma: preBlurPx / minDim,
+        sigma,
         minDimOverride: minDim,
         minScale: 1,
         inputIsPremult: true,
         mask: maskTex,
+        draft: !!env?.draft,
       });
       heightTex = heightSrc.color;
     }

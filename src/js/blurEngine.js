@@ -10,6 +10,9 @@ const FASTKERNEL_SIGMA_PCT = 0.015;
 const AUTO_MIN_SCALE_DEFAULT = 1;
 const SCALE_CURVE_EXP_DEFAULT = 0.001;
 const SHADER_MAX_RADIUS_PX = 480;
+/** Preview/draft: stronger downscale floor + hard kernel radius cap. */
+const DRAFT_MIN_SCALE = 0.35;
+const DRAFT_RADIUS_CAP_PX = 48;
 
 /** Аналог Ii(p5) бандла: 1×1 непрозрачно-белая заглушка для u_mask, когда маска не используется. */
 function createMaskPlaceholder(glc) {
@@ -113,6 +116,7 @@ export function createBlurEngine(glc, p, shaders) {
   }
 
   function gaussian(inputTex, target, opts = {}) {
+    const draft = !!opts.draft;
     const srcW = opts.srcW ?? w;
     const srcH = opts.srcH ?? h;
     const minDim = typeof opts.minDimOverride === 'number' ? opts.minDimOverride : Math.max(1, (srcW + srcH) / 2);
@@ -123,14 +127,19 @@ export function createBlurEngine(glc, p, shaders) {
     const aspectScale = Math.pow(2, aspect * 2);
     const sigmaPxH = sigmaPx * aspectScale;
     const sigmaPxV = sigmaPx / aspectScale;
-    const fastKernel =
+    // Draft: always fast kernel; live/export keeps threshold behaviour.
+    const fastKernel = draft ||
       sigmaPxH >= FASTKERNEL_SIGMA_PCT * minDim || sigmaPxV >= FASTKERNEL_SIGMA_PCT * minDim;
     const mix = Math.max(0, Math.min(1, opts.mix ?? 1));
     const blendMode = opts.blendMode ?? 0;
     const needsComposite = mix < 1 || blendMode !== 0;
-    const scaleH = scaleBySigmaPxCurved(sigmaPxH, minDim, opts.minScale);
-    const scaleV = scaleBySigmaPxCurved(sigmaPxV, minDim, opts.minScale);
-    const maxRadiusScale = (SHADER_MAX_RADIUS_PX - 0.5) / 3;
+    const minScaleOpt = draft
+      ? Math.min(opts.minScale ?? 1, DRAFT_MIN_SCALE)
+      : opts.minScale;
+    const scaleH = scaleBySigmaPxCurved(sigmaPxH, minDim, minScaleOpt);
+    const scaleV = scaleBySigmaPxCurved(sigmaPxV, minDim, minScaleOpt);
+    const maxRadiusPx = draft ? DRAFT_RADIUS_CAP_PX : SHADER_MAX_RADIUS_PX;
+    const maxRadiusScale = (maxRadiusPx - 0.5) / 3;
     const antiOverflow = (sigmaPxDir, scale) => {
       if (sigmaPxDir <= 0) return scale;
       const limit = maxRadiusScale / (sigmaPxDir * scale);
@@ -149,9 +158,15 @@ export function createBlurEngine(glc, p, shaders) {
 
     const sigmaPxHScaled = sigmaPxH * finalScaleH;
     const sigmaPxVScaled = sigmaPxV * finalScaleV;
+    let radiusH = 3 * sigmaPxHScaled;
+    let radiusV = 3 * sigmaPxVScaled;
+    if (draft) {
+      radiusH = Math.min(radiusH, DRAFT_RADIUS_CAP_PX);
+      radiusV = Math.min(radiusV, DRAFT_RADIUS_CAP_PX);
+    }
 
-    blurResampled(inputTex, srcW, srcH, bufH, tmpHW, tmpHH, [1, 0], sigmaPxHScaled, 3 * sigmaPxHScaled, inputIsPremult, fastKernel, maskTex);
-    blurResampled(bufH.color, tmpHW, tmpHH, bufHV, tmpHVW, tmpHVH, [0, 1], sigmaPxVScaled, 3 * sigmaPxVScaled, inputIsPremult, fastKernel, maskTex);
+    blurResampled(inputTex, srcW, srcH, bufH, tmpHW, tmpHH, [1, 0], sigmaPxHScaled, radiusH, inputIsPremult, fastKernel, maskTex);
+    blurResampled(bufH.color, tmpHW, tmpHH, bufHV, tmpHVW, tmpHVH, [0, 1], sigmaPxVScaled, radiusV, inputIsPremult, fastKernel, maskTex);
 
     const selfTarget = target.color === inputTex;
     const dest = selfTarget ? stage : target;
@@ -164,12 +179,13 @@ export function createBlurEngine(glc, p, shaders) {
   }
 
   function motion(inputTex, target, opts = {}) {
+    const draft = !!opts.draft;
     const srcW = opts.srcW ?? w;
     const srcH = opts.srcH ?? h;
     const minDim = Math.max(1, (srcW + srcH) / 2);
     const inputIsPremult = !!opts.inputIsPremult;
     const sigmaPx = sigmaToPx(opts.sigma, minDim);
-    const fastKernel = sigmaPx >= FASTKERNEL_SIGMA_PCT * minDim;
+    const fastKernel = draft || sigmaPx >= FASTKERNEL_SIGMA_PCT * minDim;
     const angleRad = ((opts.angleDeg ?? 0) * Math.PI) / 180;
     const dir = [Math.cos(angleRad), Math.sin(angleRad)];
     const selfTarget = target.color === inputTex;
@@ -179,8 +195,10 @@ export function createBlurEngine(glc, p, shaders) {
     const dest = selfTarget || needsComposite ? stage : target;
     const finalDest = selfTarget ? ensureTempFbo('tmpHV', w, h) : target;
     const maskTex = opts.mask ?? null;
+    let radiusPx = 3 * sigmaPx;
+    if (draft) radiusPx = Math.min(radiusPx, DRAFT_RADIUS_CAP_PX);
 
-    blurResampled(inputTex, srcW, srcH, dest, w, h, dir, sigmaPx, 3 * sigmaPx, inputIsPremult, fastKernel, maskTex);
+    blurResampled(inputTex, srcW, srcH, dest, w, h, dir, sigmaPx, radiusPx, inputIsPremult, fastKernel, maskTex);
     if (needsComposite) {
       copy(dest.color, finalDest, w, h, { baseTex: inputTex, mix, blendMode });
     } else if (dest !== finalDest) {
