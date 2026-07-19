@@ -57,4 +57,24 @@ describe('add / remove', () => {
     reg.add({ url: 'blob:x', name: 'X', width: 1, height: 1 });
     expect(reg.keys()).toEqual(expect.arrayContaining([expect.stringMatching(/^user_/)]));
   });
+  it('add() accepts kind:video and seekAllVideosToFrame seeks the element', async () => {
+    const reg = createMediaRegistry({}, fakeLoader());
+    const video = {
+      currentTime: 0,
+      duration: 10,
+      pause() {},
+      addEventListener(type, fn) {
+        if (type === 'seeked') queueMicrotask(fn);
+      },
+      removeEventListener() {},
+    };
+    const entry = reg.add({
+      url: 'blob:vid', name: 'Clip.mp4', width: 320, height: 240,
+      kind: 'video', video, tex: {},
+    });
+    expect(entry.kind).toBe('video');
+    expect(reg.videoEntries()).toHaveLength(1);
+    await reg.seekAllVideosToFrame(15, 30); // t = 0.5s
+    expect(video.currentTime).toBeCloseTo(0.5, 5);
+  });
 });

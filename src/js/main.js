@@ -2,7 +2,7 @@ import p5 from 'p5';
 import { registerSW } from 'virtual:pwa-register';
 import { createDefaultState, serializeState, restoreState } from './state.js';
 import { lumenSketch } from './app.js';
-import { LEFT_SECTIONS } from './controls.js';
+import { LEFT_SECTIONS, timelineFrameMax } from './controls.js';
 import { createPanelBuilder, openSections } from '../shared/ui/panelBuilder.js';
 import { createPersistence } from '../shared/utils/persistence.js';
 import { timestamp } from '../shared/utils/datetime.js';
@@ -12,7 +12,7 @@ import { buildPresetPanelSection } from './presetPanel.js';
 import { renderInspector } from './inspector.js';
 import { PRESETS } from './presets.js';
 import { applyPresetToState } from './presetConvert.js';
-import { startMp4Export } from './mp4Export.js';
+import { startMp4Export, cancelMp4Export } from './mp4Export.js';
 
 const STORAGE_KEY = 'lumen-tool';
 const THEME_KEY = 'lumen-theme';
@@ -38,6 +38,7 @@ window.__lumenApplyPreset = (name) => {
   const preset = PRESETS.find((p) => p.name === name);
   if (!preset) return `not found; known: ${PRESETS.map((p) => p.name).join(', ')}`;
   applyPresetToState(state, preset);
+  api?.invalidatePipeline?.();
   api?.rebuildBuffer();
   api?.scheduler.requestRender();
   saveState();
@@ -53,12 +54,15 @@ const { saveState, loadState } = createPersistence(
 );
 loadState();
 
-let api = null; // { scheduler, rebuildBuffer, getBuffer, getMedia, getP } — придёт из sketch onReady
-let layersSection = null; // { refresh } — для обновления бейджей/индента после Members-toggle
+let api = null; // onReady API from sketch
+let layersSection = null;
+let statusToken = 0; // prevents stale timeouts from clearing fresh status
 
 function applyChange(ctrl) {
   if (ctrl.id === 'lm-btn-save-png') return exportPNG();
+
   if (ctrl.regen === 'buffer' && api) {
+    api.invalidatePipeline?.();
     api.rebuildBuffer();
     api.scheduler.requestRender();
   }
@@ -66,11 +70,39 @@ function applyChange(ctrl) {
     api.syncAnimation();
     api.scheduler.requestRender();
   }
+  if (ctrl.regen === 'timeline' && api) {
+    // FPS / length changed: clamp frame, sync p5 frameRate, refresh scrubber max
+    const max = timelineFrameMax(state.rec);
+    if (state.runtime.frame > max) {
+      state.runtime.frame = max;
+      api.setFrame?.(max);
+    }
+    api.syncFrameRate?.();
+    api.syncAnimation();
+    syncTimelineScrubber();
+    syncMp4LengthSelect();
+    api.invalidatePipeline?.();
+    api.scheduler.requestRender();
+  }
+  if (ctrl.regen === 'frame' && api) {
+    // Absolute scrub — do not advance via animation step
+    api.setFrame?.(state.runtime.frame);
+    api.scheduler.requestRender();
+  }
+  if (ctrl.regen === 'none') {
+    // quality/bitrate — export-only, no re-render required
+  }
+
+  // Stack/param mutations from other panels call invalidate separately
+  if (ctrl.regen !== 'none' && ctrl.regen !== 'frame') {
+    api?.invalidatePipeline?.();
+  }
+
   saveState();
 }
 
 function refreshVisibility() {
-  // Фаза 2: условно скрываемых контролов нет.
+  // no conditional rows in LEFT_SECTIONS yet
 }
 
 function exportPNG() {
@@ -87,15 +119,43 @@ function exportPNG() {
   }, 'image/png');
 }
 
-function setStatus(text) {
+/**
+ * Footer status line.
+ * @param {string} text
+ * @param {{ clearIf?: string, ttl?: number }} [opts]
+ *   clearIf — only clear after ttl if status still equals this message
+ *   ttl — ms before auto-clear (0 = never auto-clear); default 2500
+ */
+function setStatus(text, opts = {}) {
   const s = document.getElementById('lm-export-status');
-  if (s) {
-    s.textContent = text;
-    setTimeout(() => { if (s.textContent === text) s.textContent = ''; }, 2500);
+  if (!s) return;
+  // Support clearIf protocol from exportMedia finalizer
+  if (opts.clearIf !== undefined) {
+    if (s.textContent === opts.clearIf || text === '') {
+      if (s.textContent === opts.clearIf) s.textContent = '';
+    }
+    return;
   }
+  s.textContent = text;
+  const ttl = opts.ttl !== undefined ? opts.ttl : (text ? 2500 : 0);
+  if (!ttl) return;
+  const token = ++statusToken;
+  setTimeout(() => {
+    if (token !== statusToken) return; // superseded by a newer status
+    if (s.textContent === text) s.textContent = '';
+  }, ttl);
 }
 
-const recVideo = { active: false, seconds: 4 };
+// SSOT for export duration = state.rec.length.value; recVideo mirrors it.
+const recVideo = {
+  active: false,
+  cancel: false,
+  get seconds() { return state.rec.length.value; },
+  set seconds(v) {
+    const n = parseInt(v, 10);
+    if (Number.isFinite(n) && n > 0) state.rec.length.value = n;
+  },
+};
 
 const panel = createPanelBuilder({ state, applyChange, refreshVisibility });
 
@@ -105,10 +165,49 @@ function refreshInspector() {
     getMedia: () => api?.getMedia(),
     onParamChange({ refreshLayers = false } = {}) {
       if (refreshLayers) layersSection?.refresh();
+      api?.invalidatePipeline?.();
       api?.scheduler.requestRender();
       saveState();
     },
   });
+}
+
+function syncTimelineScrubber() {
+  const slide = document.getElementById('lm-timeline-frame');
+  const num = document.getElementById('lm-timeline-frame-num');
+  const max = timelineFrameMax(state.rec);
+  if (slide) {
+    slide.max = String(max);
+    slide.value = String(Math.min(state.runtime.frame, max));
+  }
+  if (num) {
+    num.max = String(max);
+    num.value = String(Math.min(state.runtime.frame, max));
+  }
+}
+
+function syncMp4LengthSelect() {
+  const sel = document.getElementById('lm-mp4-length');
+  if (!sel) return;
+  const v = String(state.rec.length.value);
+  // Ensure option exists for current length
+  if (![...sel.options].some((o) => o.value === v)) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = `${v}s`;
+    sel.appendChild(opt);
+  }
+  sel.value = v;
+}
+
+function syncExportButtons() {
+  const mp4Btn = document.getElementById('lm-btn-save-mp4');
+  const cancelBtn = document.getElementById('lm-btn-cancel-mp4');
+  if (mp4Btn) mp4Btn.disabled = !!recVideo.active;
+  if (cancelBtn) {
+    cancelBtn.hidden = !recVideo.active;
+    cancelBtn.disabled = !recVideo.active;
+  }
 }
 
 function buildUI() {
@@ -117,18 +216,22 @@ function buildUI() {
   buildPresetPanelSection(root, {
     state,
     onApply() {
+      api?.invalidatePipeline?.();
       api?.rebuildBuffer();
       api?.syncAnimation();
       api?.scheduler.requestRender();
       saveState();
       layersSection?.refresh();
       refreshInspector();
+      syncTimelineScrubber();
+      syncMp4LengthSelect();
     },
   });
   panel.buildSections(root, LEFT_SECTIONS);
   layersSection = buildLayersSection(root, {
     state,
     onStackChange() {
+      api?.invalidatePipeline?.();
       api?.syncAnimation();
       api?.scheduler.requestRender();
       saveState();
@@ -139,30 +242,84 @@ function buildUI() {
     p: api?.getP?.() ?? null,
     media: api?.getMedia?.() ?? null,
     onChange() {
+      api?.invalidatePipeline?.();
       api?.scheduler.requestRender();
-      // user-слоты НЕ сериализуем (blob:-URL живут в памяти сессии) — persistence не трогаем
-      refreshInspector(); // инспектор пересобирает media-select
+      // user-слоты НЕ сериализуем (blob:-URL живут в памяти сессии)
+      refreshInspector();
     },
   });
-  openSections(root, [0, 1, 2, 3]);
-  // Fix: use onclick to avoid duplicate listeners on repeated buildUI calls
+  openSections(root, [0, 1, 2, 3, 4]);
+
   const pngBtn = document.getElementById('lm-btn-save-png');
   if (pngBtn) {
     pngBtn.onclick = () => applyChange({ id: 'lm-btn-save-png' });
   }
+
   const mp4Btn = document.getElementById('lm-btn-save-mp4');
   if (mp4Btn) {
-    mp4Btn.onclick = () => startMp4Export(api, state, recVideo, setStatus);
-  }
-  const mp4Length = document.getElementById('lm-mp4-length');
-  if (mp4Length) {
-    mp4Length.onchange = (e) => {
-      recVideo.seconds = parseInt(e.target.value, 10) || 4;
+    mp4Btn.onclick = async () => {
+      if (recVideo.active) return;
+      syncExportButtons();
+      // Long-running export: don't auto-clear progress messages mid-run
+      const status = (msg, opts) => {
+        if (opts?.clearIf !== undefined) return setStatus(msg, opts);
+        // During export keep progress until next update (ttl 0), final messages use default
+        const isProgress = typeof msg === 'string' && (
+          msg.startsWith('Encoding') || msg.startsWith('Preparing') || msg.startsWith('Finalizing')
+        );
+        setStatus(msg, isProgress ? { ttl: 0 } : opts);
+        syncExportButtons();
+      };
+      syncExportButtons();
+      try {
+        await startMp4Export(api, state, recVideo, status);
+      } finally {
+        syncExportButtons();
+        syncTimelineScrubber();
+      }
     };
   }
+
+  const cancelBtn = document.getElementById('lm-btn-cancel-mp4');
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      cancelMp4Export(recVideo);
+      setStatus('Cancelling…', { ttl: 0 });
+    };
+  }
+
+  const mp4Length = document.getElementById('lm-mp4-length');
+  if (mp4Length) {
+    syncMp4LengthSelect();
+    mp4Length.onchange = (e) => {
+      const n = parseInt(e.target.value, 10) || 4;
+      state.rec.length.value = n;
+      applyChange({ id: 'lm-mp4-length', regen: 'timeline', path: 'rec.length.value' });
+      // Keep panel slider in sync
+      panel.syncUIFromState(LEFT_SECTIONS);
+      syncTimelineScrubber();
+    };
+  }
+
   const themeBtn = document.getElementById('lm-btn-theme');
   if (themeBtn) themeBtn.onclick = toggleTheme;
+
+  syncTimelineScrubber();
+  syncExportButtons();
 }
+
+// Live scrubber value while animation plays (lightweight DOM touch)
+function tickScrubberFromRuntime() {
+  if (!api || recVideo.active) return;
+  if (!api.scheduler.isAnimating()) return;
+  const slide = document.getElementById('lm-timeline-frame');
+  const num = document.getElementById('lm-timeline-frame-num');
+  if (!slide && !num) return;
+  const f = state.runtime.frame;
+  if (slide && slide !== document.activeElement) slide.value = String(f);
+  if (num && num !== document.activeElement) num.value = String(f);
+}
+setInterval(tickScrubberFromRuntime, 250);
 
 const container = document.getElementById('lumen-canvas');
 new p5((p) => lumenSketch(p, {
@@ -173,6 +330,8 @@ new p5((p) => lumenSketch(p, {
     panel.syncUIFromState(LEFT_SECTIONS);
     refreshInspector();
     api.syncAnimation();
+    syncTimelineScrubber();
+    syncMp4LengthSelect();
   },
 }), container);
 

@@ -1,11 +1,13 @@
 // LUMEN — пайплайн шейдерных пассов v2: ping-pong между fboA/fboB внутри
-// WEBGL2-графики + FBO-пул getBuffer(name) (bundle-pretty.js:46918-46934) +
-// mask-стек (bundle 46951-46986, 47601-47639) + blur-движок (класс iIA,
-// 88737-88846). Модули со сложным пассом получают опциональный хук
-// run(runCtx) вместо дефолтного одношейдерного runPass.
+// WEBGL2-графики + FBO-пул getBuffer(name) + mask-стек + blur-движок.
+// Static-prefix cache: если первые N слоёв не animated и нет масок — кэшируем
+// их результат и на анимированных кадрах гоняем только суффикс.
 import { MODULES } from './modules/index.js';
 import { resetMaskStack, activeMask, consumeMaskCharge } from './maskStack.js';
 import { createBlurEngine } from './blurEngine.js';
+import { findStaticSplit } from './pipelineSplit.js';
+
+export { findStaticSplit } from './pipelineSplit.js';
 
 import lumenVert from '../shaders/lumen.vert?raw';
 import fillColorFrag from '../shaders/fillColor.frag?raw';
@@ -57,7 +59,10 @@ export function createPipeline(glc, p) {
   const fboOpts = { format: p.HALF_FLOAT, depth: false, antialias: false };
   const fboBlank = glc.createFramebuffer(fboOpts);
   const fbos = [glc.createFramebuffer(fboOpts), glc.createFramebuffer(fboOpts)];
+  const fboStatic = glc.createFramebuffer(fboOpts);
   let ping = 0;
+  let staticDirty = true;
+  let cachedSplit = -1;
 
   const shaders = {};
   for (const [key, frag] of Object.entries(FRAG_SOURCES)) {
@@ -132,13 +137,10 @@ export function createPipeline(glc, p) {
     return fbo.color;
   }
 
-  /** Прогоняет стек; возвращает текстуру финального пасса (или пустую).
-   *  Итерация инлайн, без getRenderPasses: его .filter() аллоцировал бы
-   *  массив каждый кадр в горячем цикле (AGENTS.md §5). */
-  function render(stack, env) {
+  function runStackRange(stack, env, start, end, inputTex) {
     resetMaskStack(ctx);
-    let tex = fboBlank.color;
-    for (let i = 0; i < stack.length; i++) {
+    let tex = inputTex;
+    for (let i = start; i < end; i++) {
       const inst = stack[i];
       if (inst.type === 'mask') {
         if (!inst.enabled) continue;
@@ -165,13 +167,53 @@ export function createPipeline(glc, p) {
     return tex;
   }
 
+  function copyTexToFbo(tex, target) {
+    target.begin();
+    glc.clear();
+    glc.image(tex, -glc.width / 2, -glc.height / 2, glc.width, glc.height);
+    target.end();
+  }
+
+  /** Прогоняет стек; возвращает текстуру финального пасса (или пустую). */
+  function render(stack, env) {
+    const split = findStaticSplit(stack);
+
+    // Полный прогон, если кэш бесполезен (всё animated / есть маски / split=0).
+    if (split <= 0) {
+      return runStackRange(stack, env, 0, stack.length, fboBlank.color);
+    }
+
+    // Пересобрать static prefix при dirty или смене split.
+    if (staticDirty || cachedSplit !== split) {
+      const prefixTex = runStackRange(stack, env, 0, split, fboBlank.color);
+      copyTexToFbo(prefixTex, fboStatic);
+      staticDirty = false;
+      cachedSplit = split;
+    }
+
+    // Все слои статичны — отдаём кэш.
+    if (split >= stack.length) {
+      return fboStatic.color;
+    }
+
+    // Анимированный суффикс: старт с кэшированного префикса.
+    return runStackRange(stack, env, split, stack.length, fboStatic.color);
+  }
+
+  function invalidate() {
+    staticDirty = true;
+    cachedSplit = -1;
+  }
+
   function resizeAll() {
     fboBlank.resize(glc.width, glc.height);
     fbos[0].resize(glc.width, glc.height);
     fbos[1].resize(glc.width, glc.height);
+    fboStatic.resize(glc.width, glc.height);
     Object.values(pool).forEach((fbo) => fbo.resize(glc.width, glc.height));
     blur.resize(glc.width, glc.height);
+    invalidate();
   }
 
-  return { render, fboBlank, resizeAll };
+  return { render, fboBlank, resizeAll, invalidate, findStaticSplit: (stack) => findStaticSplit(stack) };
 }

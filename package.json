@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{js,css,html}\""
   },
   "dependencies": {
+    "mp4-muxer": "^5.2.2",
     "p5": "2.2.3"
   },
   "devDependencies": {

@@ -24,12 +24,14 @@
         <button id="lm-btn-save-png" class="btn btn-accent">Export as PNG</button>
         <div class="btn-group" style="display:grid;grid-template-columns:1fr auto;gap:8px;">
           <button id="lm-btn-save-mp4" class="btn btn-secondary">Export as MP4</button>
-          <select id="lm-mp4-length" class="grafema-select" style="min-width:64px;" title="Video length">
-            <option value="2">2s</option><option value="4" selected>4s</option>
+          <select id="lm-mp4-length" class="grafema-select" style="min-width:64px;" title="Video length (syncs with Animation Length)">
+            <option value="2">2s</option><option value="4">4s</option>
             <option value="6">6s</option><option value="8">8s</option>
-            <option value="10">10s</option><option value="15">15s</option>
+            <option value="10" selected>10s</option><option value="15">15s</option>
+            <option value="30">30s</option><option value="60">60s</option>
           </select>
         </div>
+        <button id="lm-btn-cancel-mp4" class="btn btn-secondary" hidden disabled>Cancel export</button>
         <div id="lm-export-status" class="export-status"></div>
         <button id="lm-btn-theme" class="btn btn-secondary lm-theme-toggle" title="Toggle Theme">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

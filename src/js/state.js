@@ -52,9 +52,16 @@ export function createDefaultState() {
     stack: [], // [{ id, type: 'pass'|'mask', module, enabled, params, maskMembers? }]
     userPresets: [], // Пользовательские пресеты (старый v2-формат) — фаза 6.
     // --- Не сериализуется ---
-    ui: { selectedId: null },
+    ui: { selectedId: null, showCheckerboard: true },
     runtime: { frame: 0, buffer: null, needsRender: true },
   };
+}
+
+/** Total animation frames from rec length × fps (shared by app / export / scrubber). */
+export function totalFramesFor(rec) {
+  const fps = Math.max(1, rec?.frameRate || 30);
+  const sec = Math.max(0.001, typeof rec?.length === 'object' ? rec.length.value : (rec?.length || 1));
+  return Math.max(1, Math.round(sec * fps));
 }
 
 const PERSISTED = ['cnv', 'rec', 'stack', 'userPresets'];
