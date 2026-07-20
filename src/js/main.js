@@ -349,6 +349,7 @@ new p5((p) => lumenSketch(p, {
   state,
   onReady(a) {
     api = a;
+    window.__lumenApi = a; // отладка в консоли (как __lumenState); не API
     buildUI();
     panel.syncUIFromState(LEFT_SECTIONS);
     refreshInspector();
